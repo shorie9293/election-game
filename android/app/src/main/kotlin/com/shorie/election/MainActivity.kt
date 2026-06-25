@@ -1,4 +1,4 @@
-package com.takamagahara.election_game
+package com.shorie.election
 
 import io.flutter.embedding.android.FlutterActivity
 
