@@ -4,6 +4,7 @@ import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/screens/game_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const ErrorBoundary(
       child: ElectionGameApp(),
