@@ -12,7 +12,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.takamagahara.election_game"
+    namespace = "com.shorie.election"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -35,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.takamagahara.election_game"
+        applicationId = "com.shorie.election"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
