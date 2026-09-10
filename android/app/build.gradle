@@ -40,7 +40,8 @@ android {
 
     defaultConfig {
         applicationId = "com.shorie.election"
-        minSdk = flutter.minSdkVersion
+        // firebase_analytics / firebase_crashlytics は minSdk 23 を要求（Manifest merger）
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
