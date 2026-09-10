@@ -5,6 +5,8 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
     // Firebase 運用監視基盤: google-services.json を読み込み Crashlytics/Analytics を有効化
     id "com.google.gms.google-services"
+    // Crashlytics マッピング・シンボル自動アップロード（難読化クラッシュの可読化）
+    id "com.google.firebase.crashlytics"
 }
 
 def keystorePropertiesFile = rootProject.file('key.properties')
