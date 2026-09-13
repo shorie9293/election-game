@@ -7,6 +7,7 @@ import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
+import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 
 /// メイン画面（生活パラメータ＋行動選択＋デイリーイベント）
 class HomeScreen extends StatefulWidget {
@@ -100,6 +101,13 @@ class _HomeScreenState extends State<HomeScreen> {
           }).toList(),
         );
       },
+    );
+  }
+
+  /// 政策・制度クイズ画面へ遷移する
+  void _openQuiz(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const QuizScreen()),
     );
   }
 
@@ -231,6 +239,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 12),
             ],
+
+            // 政策・制度クイズ（理解度テスト）
+            _ActionButton(
+              key: AppKeys.homeQuizButton,
+              icon: Icons.quiz,
+              label: '政策・制度クイズ',
+              description: '選挙制度と政策の理解度をクイズで確かめる',
+              color: RetroPalette.gold,
+              onPressed: () => _openQuiz(context),
+            ),
+            const SizedBox(height: 12),
 
             // 選挙に行くボタン
             if (widget.remainingTurns <= 0)

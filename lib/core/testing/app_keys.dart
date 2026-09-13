@@ -85,6 +85,25 @@ class AppKeys {
   // Game screen
   static const gameScreenScaffold = Key('game_screen_scaffold');
 
+  // Quiz（政策・制度クイズ）
+  static const homeQuizButton = Key('home_quiz_button');
+  static const quizTitle = Key('quiz_title');
+  static const quizProgress = Key('quiz_progress');
+  static const quizCategory = Key('quiz_category');
+  static const quizQuestionText = Key('quiz_question_text');
+  static Key quizChoice(int index) => Key('quiz_choice_$index');
+  static const quizFeedback = Key('quiz_feedback');
+  static const quizExplanation = Key('quiz_explanation');
+  static const quizNextButton = Key('quiz_next_button');
+  static const quizResultView = Key('quiz_result_view');
+  static const quizResultScore = Key('quiz_result_score');
+  static const quizResultRank = Key('quiz_result_rank');
+  static const quizResultBadge = Key('quiz_result_badge');
+  static const quizResultMissed = Key('quiz_result_missed');
+  static const quizBestScore = Key('quiz_best_score');
+  static const quizRetryButton = Key('quiz_retry_button');
+  static const quizCloseButton = Key('quiz_close_button');
+
   // Ending
   static const endingConcernGrowth = Key('ending_concern_growth');
 
