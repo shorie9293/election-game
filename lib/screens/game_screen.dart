@@ -25,6 +25,7 @@ import 'package:election_game/features/tutorial/presentation/tutorial_overlay.da
 import 'package:election_game/features/town_square/presentation/town_square_screen.dart';
 import 'package:election_game/domain/models/citizen_npc_relationship.dart';
 import 'package:election_game/domain/models/opposition_citizen.dart';
+import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
 
@@ -34,7 +35,10 @@ import 'package:election_game/services/audio_players_bgm_service.dart';
 /// GameStateを更新して次のフェーズへ遷移する。
 /// スケール進行（村→町→市）に応じた段階進行をサポート。
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  /// 選挙アーカイブの永続化先リポジトリ（試練では差し替え可能）
+  final ElectionArchiveRepository archiveRepository;
+
+  const GameScreen({super.key, this.archiveRepository = const SharedPreferencesElectionArchiveRepository()});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -59,11 +63,26 @@ class _GameScreenState extends State<GameScreen> {
   /// BGM再生サービス。本番環境では AudioPlayersBgmService 等に差し替え可能。
   final BgmService _bgmService = AudioPlayersBgmService();
 
+  /// 選挙アーカイブから読み込んだ過去選挙（initState で repository.load() を反映）
+  List<Election> _loadedPastElections = const [];
+
   @override
   void initState() {
     super.initState();
     _initTutorial();
     _playBgmForScale();
+    _loadArchive();
+  }
+
+  /// 保存済みの選挙アーカイブを読み込み、pastElections の初期値に使う。
+  Future<void> _loadArchive() async {
+    try {
+      final elections = await widget.archiveRepository.load();
+      if (!mounted) return;
+      setState(() => _loadedPastElections = elections);
+    } catch (_) {
+      // 読込失敗時は空リストのまま続行
+    }
   }
 
   /// BGM切替 — ElectionScale に応じたトラックを再生する。
@@ -240,6 +259,22 @@ class _GameScreenState extends State<GameScreen> {
     setState(() => _currentPhase = GamePhase.vote);
   }
 
+  /// 確定した選挙結果を過去選挙に記録する。
+  ///
+  /// GameState.pastElections に追記し、選挙アーカイブリポジトリにも保存する。
+  void _recordElectionResult(Election result) {
+    if (!result.completed) return;
+    // アーカイブ重複追加は同一IDでリポジトリ側が防止する
+    widget.archiveRepository.add(result);
+    final past = <Election>{
+      ..._loadedPastElections,
+      ..._gameState.pastElections,
+      result,
+    }.toList();
+    _loadedPastElections = past;
+    _gameState = _gameState.copyWith(pastElections: past);
+  }
+
   /// 投票実行 → resultへ
   void _onVoteCast(String candidateId) {
     _votedCandidateId = candidateId;
@@ -257,6 +292,7 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
+      _recordElectionResult(result);
       _currentPhase = GamePhase.result;
     });
   }
@@ -277,6 +313,7 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
+      _recordElectionResult(result);
       _currentPhase = GamePhase.result;
     });
   }
@@ -369,6 +406,7 @@ class _GameScreenState extends State<GameScreen> {
             : currentScale,
         concernEvolutions: updatedEvolutions,
         npcRelationships: _gameState.npcRelationships,
+        pastElections: _gameState.pastElections,
       );
       _currentPhase = isFinalEnding ? GamePhase.ending : GamePhase.home;
       _lifeParamChanges = {};

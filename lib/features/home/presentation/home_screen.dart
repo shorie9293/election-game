@@ -8,6 +8,8 @@ import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
+import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
+import 'package:election_game/domain/repositories/election_archive_repository.dart';
 
 /// メイン画面（生活パラメータ＋行動選択＋デイリーイベント）
 class HomeScreen extends StatefulWidget {
@@ -108,6 +110,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openQuiz(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const QuizScreen()),
+    );
+  }
+
+  /// 選挙アーカイブ画面へ遷移する。
+  ///
+  /// ホームは GameState を知らないため、アーカイブは repository から
+  /// 直接読込する設計を選んだ（GameState への依存を広げず、
+  /// アーカイブ画面単体で完結する方式が既存設計に最も自然）。
+  void _openArchive(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const ElectionArchiveScreen(
+          entries: [],
+          repository: SharedPreferencesElectionArchiveRepository(),
+        ),
+      ),
     );
   }
 
@@ -248,6 +266,17 @@ class _HomeScreenState extends State<HomeScreen> {
               description: '選挙制度と政策の理解度をクイズで確かめる',
               color: RetroPalette.gold,
               onPressed: () => _openQuiz(context),
+            ),
+            const SizedBox(height: 12),
+
+            // 選挙アーカイブ（過去選挙の履歴）
+            _ActionButton(
+              key: AppKeys.homeArchiveButton,
+              icon: Icons.history,
+              label: '選挙アーカイブ',
+              description: '過去の選挙結果と政策影響の推移を振り返る',
+              color: RetroPalette.panelBorder,
+              onPressed: () => _openArchive(context),
             ),
             const SizedBox(height: 12),
 

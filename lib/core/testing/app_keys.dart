@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:election_game/domain/models/election_scale.dart';
 
 /// 全画面・全Widgetの試験用Keyを一元管理。
 /// 重複禁止。命名規則: <画面名>_<要素名>
@@ -84,6 +85,17 @@ class AppKeys {
 
   // Game screen
   static const gameScreenScaffold = Key('game_screen_scaffold');
+
+  // Election archive（選挙アーカイブ）
+  static const homeArchiveButton = Key('home_archive_button');
+  static const archiveTitle = Key('archive_title');
+  static const archiveSummaryCard = Key('archive_summary_card');
+  static const archiveEmptyState = Key('archive_empty_state');
+  static const archiveList = Key('archive_list');
+  static const archiveScaleProgression = Key('archive_scale_progression');
+  static const archiveFilterAll = Key('archive_filter_all');
+  static Key archiveScaleFilter(ElectionScale scale) =>
+      Key('archive_scale_filter_${scale.name}');
 
   // Quiz（政策・制度クイズ）
   static const homeQuizButton = Key('home_quiz_button');
