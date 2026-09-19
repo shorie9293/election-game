@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/domain/models/citizen.dart';
 import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
+import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 
@@ -21,6 +23,8 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onStartElection;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
+  final double textScale;
+  final ValueChanged<double>? onScaleChanged;
 
   const HomeScreen({
     super.key,
@@ -32,6 +36,8 @@ class HomeScreen extends StatefulWidget {
     this.onStartElection,
     this.onActionSelected,
     this.onChoiceSelected,
+    this.textScale = TextScaleSetting.normalScale,
+    this.onScaleChanged,
   });
 
   @override
@@ -62,6 +68,20 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) _showChoiceDialog(_currentEvent!);
       });
     }
+  }
+
+  /// 文字サイズ設定画面を開く。
+  void _openTextScaleSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => TextScaleSettingsScreen(
+          key: AppKeys.textScaleScreenScaffold,
+          currentScale: widget.textScale,
+          onScaleChanged: (scale) =>
+              widget.onScaleChanged?.call(scale),
+        ),
+      ),
+    );
   }
 
   void _showChoiceDialog(DailyEvent event) {
@@ -142,6 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
           '天照町 — ${widget.citizen.name}',
           key: AppKeys.homeTitle,
         ),
+        actions: [
+          IconButton(
+            key: AppKeys.homeTextScaleButton,
+            icon: const Icon(Icons.text_fields),
+            tooltip: '文字サイズ設定',
+            onPressed: () => _openTextScaleSettings(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

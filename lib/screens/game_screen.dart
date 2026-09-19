@@ -16,6 +16,7 @@ import 'package:election_game/features/election/presentation/vote_screen.dart';
 import 'package:election_game/features/game/domain/game_phase.dart';
 import 'package:election_game/features/home/presentation/home_screen.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/domain/services/concern_evolution_service.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
@@ -38,7 +39,18 @@ class GameScreen extends StatefulWidget {
   /// 選挙アーカイブの永続化先リポジトリ（試練では差し替え可能）
   final ElectionArchiveRepository archiveRepository;
 
-  const GameScreen({super.key, this.archiveRepository = const SharedPreferencesElectionArchiveRepository()});
+  /// アプリ全体の文字サイズ倍率（main で読み込み・永続化）
+  final double textScale;
+
+  /// 文字サイズ変更時のコールバック（main で永続化される）
+  final ValueChanged<double>? onScaleChanged;
+
+  const GameScreen({
+    super.key,
+    this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
+    this.textScale = TextScaleSetting.normalScale,
+    this.onScaleChanged,
+  });
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -476,6 +488,8 @@ class _GameScreenState extends State<GameScreen> {
           onStartElection: _onStartElection,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
+          textScale: widget.textScale,
+          onScaleChanged: widget.onScaleChanged,
         );
       case GamePhase.electionAnnouncement:
         return ElectionAnnouncementScreen(

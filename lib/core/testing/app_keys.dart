@@ -124,4 +124,10 @@ class AppKeys {
   static const tutorialNextButton = Key('tutorial_next_button');
   static const tutorialSkipButton = Key('tutorial_skip_button');
   static const tutorialText = Key('tutorial_text');
+
+  // Text scale（文字サイズ設定）
+  static const textScaleScreenScaffold = Key('text_scale_screen_scaffold');
+  static const textScaleSampleCard = Key('text_scale_sample_card');
+  static const homeTextScaleButton = Key('home_text_scale_button');
+  static Key textScaleOption(double scale) => Key('text_scale_$scale');
 }
