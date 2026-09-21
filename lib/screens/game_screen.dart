@@ -7,6 +7,7 @@ import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/election_scale.dart';
 import 'package:election_game/domain/services/daily_event_service.dart';
 import 'package:election_game/domain/services/election_service.dart';
+import 'package:election_game/features/support/presentation/support_simulation_screen.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/features/citizen/presentation/citizen_create_screen.dart';
 import 'package:election_game/features/election/presentation/election_announcement_screen.dart';
@@ -77,6 +78,27 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 選挙アーカイブから読み込んだ過去選挙（initState で repository.load() を反映）
   List<Election> _loadedPastElections = const [];
+
+  /// 支持率シミュレーション画面を開く。
+  ///
+  /// 現選挙の候補者がいればそれを使い、なければ ElectionService による
+  /// 既定候補者で試算する。
+  void _openSupportSimulation() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SupportSimulationScreen(
+          candidates: _gameState.currentElection?.candidates ??
+              ElectionService.determineCandidates(_gameState.society),
+          society: _gameState.society,
+          lastElection: _gameState.pastElections.isNotEmpty
+              ? _gameState.pastElections.last
+              : null,
+          electionTitle: _gameState.currentElection?.title,
+          player: _gameState.citizen,
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -486,6 +508,7 @@ class _GameScreenState extends State<GameScreen> {
           dailyEvent: _lastDailyEvent,
           concernEvolutions: _gameState.concernEvolutions,
           onStartElection: _onStartElection,
+          onOpenSupportSimulation: _openSupportSimulation,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,

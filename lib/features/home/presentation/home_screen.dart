@@ -21,6 +21,7 @@ class HomeScreen extends StatefulWidget {
   final DailyEvent? dailyEvent;
   final List<ConcernEvolution> concernEvolutions;
   final VoidCallback? onStartElection;
+  final VoidCallback? onOpenSupportSimulation;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -34,6 +35,7 @@ class HomeScreen extends StatefulWidget {
     this.dailyEvent,
     this.concernEvolutions = const [],
     this.onStartElection,
+    this.onOpenSupportSimulation,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -163,6 +165,12 @@ class _HomeScreenState extends State<HomeScreen> {
           key: AppKeys.homeTitle,
         ),
         actions: [
+          IconButton(
+            key: AppKeys.homeSupportButton,
+            icon: const Icon(Icons.insights),
+            tooltip: '支持率シミュレーション',
+            onPressed: widget.onOpenSupportSimulation,
+          ),
           IconButton(
             key: AppKeys.homeTextScaleButton,
             icon: const Icon(Icons.text_fields),

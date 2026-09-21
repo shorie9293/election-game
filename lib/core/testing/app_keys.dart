@@ -130,4 +130,19 @@ class AppKeys {
   static const textScaleSampleCard = Key('text_scale_sample_card');
   static const homeTextScaleButton = Key('home_text_scale_button');
   static Key textScaleOption(double scale) => Key('text_scale_$scale');
+
+  // Support simulation（支持率シミュレーション）
+  static const homeSupportButton = Key('home_support_button');
+  static const supportTitle = Key('support_title');
+  static const supportMoodCard = Key('support_mood_card');
+  static const supportVoterCount = Key('support_voter_count');
+  static const supportLeaderCard = Key('support_leader_card');
+  static const supportEmptyState = Key('support_empty_state');
+  static const supportNote = Key('support_note');
+  static Key supportCandidateRow(String candidateId) =>
+      Key('support_candidate_row_$candidateId');
+  static Key supportCandidateRate(String candidateId) =>
+      Key('support_candidate_rate_$candidateId');
+  static Key supportCandidateJob(String candidateId) =>
+      Key('support_candidate_job_$candidateId');
 }
