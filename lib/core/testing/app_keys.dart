@@ -145,4 +145,20 @@ class AppKeys {
       Key('support_candidate_rate_$candidateId');
   static Key supportCandidateJob(String candidateId) =>
       Key('support_candidate_job_$candidateId');
+
+  // Candidate almanac（候補者名鑑）
+  static const homeAlmanacButton = Key('home_almanac_button');
+  static const almanacTitle = Key('almanac_title');
+  static const almanacSearchField = Key('almanac_search_field');
+  static const almanacFactionAll = Key('almanac_faction_all');
+  static Key almanacFactionChip(String faction) =>
+      Key('almanac_faction_chip_$faction');
+  static const almanacSortButton = Key('almanac_sort_button');
+  static const almanacCountLabel = Key('almanac_count_label');
+  static const almanacEmptyState = Key('almanac_empty_state');
+  static const almanacList = Key('almanac_list');
+  static Key almanacCandidateCard(String candidateId) =>
+      Key('almanac_candidate_card_$candidateId');
+  static const almanacDetailDialog = Key('almanac_detail_dialog');
+  static const almanacDetailCloseButton = Key('almanac_detail_close_button');
 }
