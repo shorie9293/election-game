@@ -19,6 +19,7 @@ import 'package:election_game/features/game/domain/game_phase.dart';
 import 'package:election_game/features/home/presentation/home_screen.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
+import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/domain/services/concern_evolution_service.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
@@ -47,11 +48,19 @@ class GameScreen extends StatefulWidget {
   /// 文字サイズ変更時のコールバック（main で永続化される）
   final ValueChanged<double>? onScaleChanged;
 
+  /// アプリ全体のテーマモード（main で読み込み・永続化）
+  final ThemeModeSetting themeMode;
+
+  /// テーマモード変更時のコールバック（main で永続化される）
+  final ValueChanged<ThemeModeSetting>? onThemeModeChanged;
+
   const GameScreen({
     super.key,
     this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
     this.textScale = TextScaleSetting.normalScale,
     this.onScaleChanged,
+    this.themeMode = ThemeModeSetting.system,
+    this.onThemeModeChanged,
   });
 
   @override
@@ -530,6 +539,8 @@ class _GameScreenState extends State<GameScreen> {
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
           onScaleChanged: widget.onScaleChanged,
+          themeMode: widget.themeMode,
+          onThemeModeChanged: widget.onThemeModeChanged,
         );
       case GamePhase.electionAnnouncement:
         return ElectionAnnouncementScreen(

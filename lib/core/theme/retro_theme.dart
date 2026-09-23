@@ -21,6 +21,11 @@ class RetroPalette {
   static const moodHealthyDebate = Color(0xFF64B5F6);
   static const moodUnhealthy = Color(0xFFFF8A65);
   static const moodDictatorship = Color(0xFFE57373);
+
+  // ライトテーマ用
+  static const lightBg = Color(0xFFF5F0E1);
+  static const lightPanelBg = Color(0xFFFFFDF5);
+  static const lightTextNormal = Color(0xFF2B2B2B);
 }
 
 /// レトロRPGテーマ
@@ -44,6 +49,30 @@ class RetroTheme {
           style: ElevatedButton.styleFrom(
             backgroundColor: RetroPalette.panelBorder,
             foregroundColor: RetroPalette.bgDark,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          ),
+        ),
+      );
+
+  /// ライトテーマ（既存 themeData と対になる定義）
+  static ThemeData get lightThemeData => ThemeData(
+        brightness: Brightness.light,
+        primaryColor: RetroPalette.panelBorder,
+        scaffoldBackgroundColor: RetroPalette.lightBg,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: RetroPalette.lightPanelBg,
+          foregroundColor: RetroPalette.lightTextNormal,
+          elevation: 0,
+        ),
+        textTheme: const TextTheme(
+          bodyMedium:
+              TextStyle(color: RetroPalette.lightTextNormal, fontSize: 14),
+          titleLarge: TextStyle(color: RetroPalette.panelBorder, fontSize: 18),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: RetroPalette.panelBorder,
+            foregroundColor: RetroPalette.lightBg,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           ),
         ),

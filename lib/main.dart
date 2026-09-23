@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
+import 'package:election_game/core/theme/theme_mode_repository.dart';
+import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/screens/game_screen.dart';
 
 void main() {
@@ -64,11 +66,30 @@ class ElectionGameApp extends StatefulWidget {
 class _ElectionGameAppState extends State<ElectionGameApp> {
   double _textScale = TextScaleSetting.normalScale;
   final TextScaleRepository _textScaleRepo = const TextScaleRepository();
+  ThemeModeSetting _themeMode = ThemeModeSetting.system;
+  final ThemeModeRepository _themeRepo = const ThemeModeRepository();
 
   @override
   void initState() {
     super.initState();
     _loadTextScale();
+    _loadThemeMode();
+  }
+
+  /// 保存されたテーマモードを読み込む（未保存/不正値は system）。
+  Future<void> _loadThemeMode() async {
+    final saved = await _themeRepo.loadThemeMode();
+    if (mounted) {
+      setState(() => _themeMode = saved ?? ThemeModeSetting.system);
+    }
+  }
+
+  /// テーマモードを変更し、永続化する。
+  Future<void> _changeThemeMode(ThemeModeSetting mode) async {
+    await _themeRepo.saveThemeMode(mode);
+    if (mounted) {
+      setState(() => _themeMode = mode);
+    }
   }
 
   /// 保存された文字サイズ倍率を読み込む（未保存/不正値は1.0）。
@@ -91,7 +112,9 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '選挙体験RPG — 天照町',
-      theme: RetroTheme.themeData,
+      theme: RetroTheme.lightThemeData,
+      darkTheme: RetroTheme.themeData,
+      themeMode: _themeMode.toThemeMode(),
       debugShowCheckedModeBanner: false,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
@@ -102,6 +125,8 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
       home: GameScreen(
         textScale: _textScale,
         onScaleChanged: _changeTextScale,
+        themeMode: _themeMode,
+        onThemeModeChanged: _changeThemeMode,
       ),
     );
   }

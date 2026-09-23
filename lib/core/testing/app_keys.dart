@@ -161,4 +161,10 @@ class AppKeys {
       Key('almanac_candidate_card_$candidateId');
   static const almanacDetailDialog = Key('almanac_detail_dialog');
   static const almanacDetailCloseButton = Key('almanac_detail_close_button');
+
+  // Theme mode（テーマ設定）
+  static const themeModeScreen = Key('theme_mode_screen');
+  static const themeModeEntry = Key('theme_mode_entry');
+  static Key themeModeOption(String storageKey) =>
+      Key('theme_mode_option_$storageKey');
 }

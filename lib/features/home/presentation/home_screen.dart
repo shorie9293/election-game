@@ -10,6 +10,8 @@ import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
+import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
+import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 
@@ -27,6 +29,8 @@ class HomeScreen extends StatefulWidget {
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
   final ValueChanged<double>? onScaleChanged;
+  final ThemeModeSetting themeMode;
+  final ValueChanged<ThemeModeSetting>? onThemeModeChanged;
 
   const HomeScreen({
     super.key,
@@ -42,6 +46,8 @@ class HomeScreen extends StatefulWidget {
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
     this.onScaleChanged,
+    this.themeMode = ThemeModeSetting.system,
+    this.onThemeModeChanged,
   });
 
   @override
@@ -83,6 +89,19 @@ class _HomeScreenState extends State<HomeScreen> {
           currentScale: widget.textScale,
           onScaleChanged: (scale) =>
               widget.onScaleChanged?.call(scale),
+        ),
+      ),
+    );
+  }
+
+  /// テーマ設定画面を開く。
+  void _openThemeModeSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => ThemeModeSettingsScreen(
+          key: AppKeys.themeModeScreen,
+          currentMode: widget.themeMode,
+          onModeChanged: (mode) => widget.onThemeModeChanged?.call(mode),
         ),
       ),
     );
@@ -184,6 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.text_fields),
             tooltip: '文字サイズ設定',
             onPressed: () => _openTextScaleSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.themeModeEntry,
+            icon: const Icon(Icons.brightness_6),
+            tooltip: 'テーマ設定',
+            onPressed: () => _openThemeModeSettings(context),
           ),
         ],
       ),
