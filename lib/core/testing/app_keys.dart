@@ -167,4 +167,13 @@ class AppKeys {
   static const themeModeEntry = Key('theme_mode_entry');
   static Key themeModeOption(String storageKey) =>
       Key('theme_mode_option_$storageKey');
+
+  // Sound settings（サウンド設定）
+  static const soundSettingsScreen = Key('sound_settings_screen');
+  static const soundSettingsEntry = Key('sound_settings_entry');
+  static const soundBgmSwitch = Key('sound_bgm_switch');
+  static const soundSfxSwitch = Key('sound_sfx_switch');
+  static const soundVolumeSlider = Key('sound_volume_slider');
+  static const soundVolumeLabel = Key('sound_volume_label');
+  static const soundSummaryLabel = Key('sound_summary_label');
 }

@@ -1,9 +1,9 @@
 # 【election-game 道標】
 
 **制定**: 令和八年皐月十二日
-**更新**: 令和八年長月二十三日（長月二十三日 — #83 候補者名鑑。全候補者の派閥・人物像・公約・政策効果合計の比較画面＋検索/派閥絞込/並替。全565通過確認。v1.0.8+14）[イシコリ]
+**更新**: 令和八年長月二十四日（長月二十四日 — #88 サウンド設定。BGM/効果音のON・OFFと音量の設定・永続化・再生反映。全640通過確認。v1.0.10+16）[イシコリ]
 **元神想書**: `shinsho/election-game-citizen-shinso.md`（351行）
-**試験**: 565/565通過 ✅
+**試験**: 640/640通過 ✅
 
 ---
 
@@ -21,6 +21,7 @@
 | Phase 4 | 街の広場深化（NPC会話ボトムシート・議論選択肢・支持可視化） | ✅ 完了（328/328、+150試験） |
 | Phase 4.5 | 支持率シミュレーション（#74・OpinionService のデッド資産配線＋SupportSimulationScreen） | ✅ 完了（498/498、+49試験） |
 | Phase 4.6 | 候補者名鑑（#83・CandidateAlmanacService＋CandidateAlmanacScreen・検索/派閥絞込/並替/公約詳細） | ✅ 完了（565/565、+67試験） |
+| Phase 4.7 | サウンド設定（#88・SoundSettings/SoundSettingsRepository＋SoundSettingsScreen・BGM/効果音のON・OFFと音量の永続化と再生反映） | ✅ 完了（640/640、+75試験） |
 
 ---
 

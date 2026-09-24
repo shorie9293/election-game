@@ -10,6 +10,8 @@ import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/theme/theme_mode_repository.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
+import 'package:election_game/core/sound/sound_settings.dart';
+import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/screens/game_screen.dart';
 
 void main() {
@@ -68,12 +70,31 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
   final TextScaleRepository _textScaleRepo = const TextScaleRepository();
   ThemeModeSetting _themeMode = ThemeModeSetting.system;
   final ThemeModeRepository _themeRepo = const ThemeModeRepository();
+  SoundSettings _soundSettings = SoundSettings.defaults;
+  final SoundSettingsRepository _soundRepo = const SoundSettingsRepository();
 
   @override
   void initState() {
     super.initState();
     _loadTextScale();
     _loadThemeMode();
+    _loadSoundSettings();
+  }
+
+  /// 保存されたサウンド設定を読み込む（未保存/不正値は既定値）。
+  Future<void> _loadSoundSettings() async {
+    final saved = await _soundRepo.load();
+    if (mounted) {
+      setState(() => _soundSettings = saved);
+    }
+  }
+
+  /// サウンド設定を変更し、永続化する。
+  Future<void> _changeSoundSettings(SoundSettings settings) async {
+    await _soundRepo.save(settings);
+    if (mounted) {
+      setState(() => _soundSettings = settings);
+    }
   }
 
   /// 保存されたテーマモードを読み込む（未保存/不正値は system）。
@@ -127,6 +148,8 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
         onScaleChanged: _changeTextScale,
         themeMode: _themeMode,
         onThemeModeChanged: _changeThemeMode,
+        soundSettings: _soundSettings,
+        onSoundSettingsChanged: _changeSoundSettings,
       ),
     );
   }

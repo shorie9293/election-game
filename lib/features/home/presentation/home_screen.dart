@@ -10,8 +10,10 @@ import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
+import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
+import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 
@@ -31,6 +33,8 @@ class HomeScreen extends StatefulWidget {
   final ValueChanged<double>? onScaleChanged;
   final ThemeModeSetting themeMode;
   final ValueChanged<ThemeModeSetting>? onThemeModeChanged;
+  final SoundSettings soundSettings;
+  final ValueChanged<SoundSettings>? onSoundSettingsChanged;
 
   const HomeScreen({
     super.key,
@@ -48,6 +52,8 @@ class HomeScreen extends StatefulWidget {
     this.onScaleChanged,
     this.themeMode = ThemeModeSetting.system,
     this.onThemeModeChanged,
+    this.soundSettings = SoundSettings.defaults,
+    this.onSoundSettingsChanged,
   });
 
   @override
@@ -102,6 +108,19 @@ class _HomeScreenState extends State<HomeScreen> {
           key: AppKeys.themeModeScreen,
           currentMode: widget.themeMode,
           onModeChanged: (mode) => widget.onThemeModeChanged?.call(mode),
+        ),
+      ),
+    );
+  }
+
+  /// サウンド設定画面を開く。
+  void _openSoundSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => SoundSettingsScreen(
+          currentSettings: widget.soundSettings,
+          onChanged: (settings) =>
+              widget.onSoundSettingsChanged?.call(settings),
         ),
       ),
     );
@@ -209,6 +228,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.brightness_6),
             tooltip: 'テーマ設定',
             onPressed: () => _openThemeModeSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.soundSettingsEntry,
+            icon: const Icon(Icons.volume_up),
+            tooltip: 'サウンド設定',
+            onPressed: () => _openSoundSettings(context),
           ),
         ],
       ),

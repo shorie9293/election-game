@@ -32,6 +32,8 @@ import 'package:election_game/domain/models/opposition_citizen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
+import 'package:election_game/services/sfx_service.dart';
+import 'package:election_game/core/sound/sound_settings.dart';
 
 /// ゲーム全体の状態を管理し、画面遷移を制御するStatefulWidget
 ///
@@ -54,6 +56,18 @@ class GameScreen extends StatefulWidget {
   /// テーマモード変更時のコールバック（main で永続化される）
   final ValueChanged<ThemeModeSetting>? onThemeModeChanged;
 
+  /// アプリ全体のサウンド設定（main で読み込み・永続化）
+  final SoundSettings soundSettings;
+
+  /// サウンド設定変更時のコールバック（main で永続化される）
+  final ValueChanged<SoundSettings>? onSoundSettingsChanged;
+
+  /// 注入可能な BGM サービス（試練では MockBgmService に差し替え可能）
+  final BgmService? bgmService;
+
+  /// 注入可能な効果音サービス（試練では MockSfxService に差し替え可能）
+  final SfxService? sfxService;
+
   const GameScreen({
     super.key,
     this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
@@ -61,6 +75,10 @@ class GameScreen extends StatefulWidget {
     this.onScaleChanged,
     this.themeMode = ThemeModeSetting.system,
     this.onThemeModeChanged,
+    this.soundSettings = SoundSettings.defaults,
+    this.onSoundSettingsChanged,
+    this.bgmService,
+    this.sfxService,
   });
 
   @override
@@ -84,7 +102,10 @@ class _GameScreenState extends State<GameScreen> {
   bool _participatedInDebate = false;
 
   /// BGM再生サービス。本番環境では AudioPlayersBgmService 等に差し替え可能。
-  final BgmService _bgmService = AudioPlayersBgmService();
+  late final BgmService _bgmService = widget.bgmService ?? AudioPlayersBgmService();
+
+  /// 効果音サービス。本番環境では SystemSoundSfxService を既定とする。
+  late final SfxService _sfxService = widget.sfxService ?? const SystemSoundSfxService();
 
   /// 選挙アーカイブから読み込んだ過去選挙（initState で repository.load() を反映）
   List<Election> _loadedPastElections = const [];
@@ -146,8 +167,31 @@ class _GameScreenState extends State<GameScreen> {
 
   /// BGM切替 — ElectionScale に応じたトラックを再生する。
   void _playBgmForScale() {
+    if (!widget.soundSettings.bgmEnabled) {
+      _bgmService.stop();
+      return;
+    }
     final track = BgmTrack.fromScale(_gameState.scale);
+    _bgmService.setVolume(widget.soundSettings.volume);
     _bgmService.play(track);
+  }
+
+  @override
+  void didUpdateWidget(GameScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final old = oldWidget.soundSettings;
+    final newSettings = widget.soundSettings;
+    if (old == newSettings) return;
+    if (old.bgmEnabled && !newSettings.bgmEnabled) {
+      // BGM オン → オフ: 停止
+      _bgmService.stop();
+    } else if (!old.bgmEnabled && newSettings.bgmEnabled) {
+      // BGM オフ → オン: 再開
+      _playBgmForScale();
+    } else if (newSettings.bgmEnabled && old.volume != newSettings.volume) {
+      // 音量のみ変更
+      _bgmService.setVolume(newSettings.volume);
+    }
   }
 
   @override
@@ -336,6 +380,9 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 投票実行 → resultへ
   void _onVoteCast(String candidateId) {
+    if (widget.soundSettings.sfxEnabled) {
+      _sfxService.playVote();
+    }
     _votedCandidateId = candidateId;
     _abstained = false;
     final election =
@@ -358,6 +405,9 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 棄権 → resultへ
   void _onAbstain() {
+    if (widget.soundSettings.sfxEnabled) {
+      _sfxService.playAbstain();
+    }
     _votedCandidateId = null;
     _abstained = true;
     final result =
@@ -541,6 +591,8 @@ class _GameScreenState extends State<GameScreen> {
           onScaleChanged: widget.onScaleChanged,
           themeMode: widget.themeMode,
           onThemeModeChanged: widget.onThemeModeChanged,
+          soundSettings: widget.soundSettings,
+          onSoundSettingsChanged: widget.onSoundSettingsChanged,
         );
       case GamePhase.electionAnnouncement:
         return ElectionAnnouncementScreen(
