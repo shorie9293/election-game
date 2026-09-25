@@ -6,7 +6,10 @@ import 'package:election_game/domain/models/candidate.dart';
 import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/domain/models/election.dart';
+import 'package:election_game/domain/models/society_state.dart';
+import 'package:election_game/domain/models/turnout_snapshot.dart';
 import 'package:election_game/domain/services/narrative_service.dart';
+import 'package:election_game/domain/services/turnout_service.dart';
 
 /// 選挙結果画面
 class ElectionResultScreen extends StatelessWidget {
@@ -17,6 +20,9 @@ class ElectionResultScreen extends StatelessWidget {
   final bool abstained;
   final List<ConcernEvolution> concernEvolutions;
 
+  /// 社会状態（渡された場合のみ投票率カードを表示する）
+  final SocietyState? society;
+
   const ElectionResultScreen({
     super.key,
     required this.result,
@@ -25,6 +31,7 @@ class ElectionResultScreen extends StatelessWidget {
     this.votedCandidateId,
     this.abstained = false,
     this.concernEvolutions = const [],
+    this.society,
   });
 
   Candidate? get _winner {
@@ -333,6 +340,10 @@ class ElectionResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
+            // 投票率（有権者参加率）
+            if (society != null)
+              _TurnoutCard(election: result, society: society!),
+
             // 生活パラメータ変化
             if (lifeParamChanges.isNotEmpty)
               SemanticHelper.interactive(
@@ -488,6 +499,96 @@ class ElectionResultScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 開票結果に添える投票率（有権者参加率）カード。
+///
+/// 社会状態が既知のときのみ描画される。計算は純粋サービスに委ねる。
+class _TurnoutCard extends StatelessWidget {
+  final Election election;
+  final SocietyState society;
+
+  const _TurnoutCard({required this.election, required this.society});
+
+  @override
+  Widget build(BuildContext context) {
+    final turnout = TurnoutService.compute(
+      election: election,
+      society: society,
+      scale: election.scale,
+    );
+
+    TurnoutCounterfactual? counterfactual;
+    if (election.completed) {
+      try {
+        counterfactual = TurnoutService.counterfactual(
+          election: election,
+          turnout: turnout,
+          society: society,
+        );
+      } on ArgumentError {
+        counterfactual = null;
+      }
+    }
+
+    return Container(
+      key: AppKeys.turnoutResultCard,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: RetroPalette.panelBg,
+        border: Border.all(color: RetroPalette.gold),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '投票率（有権者参加率）',
+            style: TextStyle(color: RetroPalette.textAccent, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '投票率 ${turnout.turnoutPercentLabel}'
+            '（棄権 ${turnout.abstentionCount}人 / 有権者 ${turnout.eligibleVoters}人）',
+            style: const TextStyle(
+              color: RetroPalette.textNormal,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '世論の傾向: ${turnout.turnoutLabel}',
+            style: const TextStyle(color: RetroPalette.textNormal, fontSize: 12),
+          ),
+          if (counterfactual != null) ...[
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 4),
+            Text(
+              counterfactual.verdictLabel,
+              style: TextStyle(
+                color: counterfactual.winnerChanged
+                    ? RetroPalette.gold
+                    : RetroPalette.textNormal,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '全員が投票していれば '
+              '${counterfactual.counterfactualWinnerName ?? '不明'} 氏が当選していた試算です',
+              style: const TextStyle(
+                color: RetroPalette.voteAbstain,
+                fontSize: 11,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

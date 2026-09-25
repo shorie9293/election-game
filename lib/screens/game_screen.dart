@@ -9,6 +9,8 @@ import 'package:election_game/domain/services/daily_event_service.dart';
 import 'package:election_game/domain/services/election_service.dart';
 import 'package:election_game/features/support/presentation/support_simulation_screen.dart';
 import 'package:election_game/features/almanac/presentation/candidate_almanac_screen.dart';
+import 'package:election_game/domain/services/turnout_service.dart';
+import 'package:election_game/features/turnout/presentation/turnout_screen.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/features/citizen/presentation/citizen_create_screen.dart';
 import 'package:election_game/features/election/presentation/election_announcement_screen.dart';
@@ -141,6 +143,34 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => CandidateAlmanacScreen(
           candidatesOverride: _gameState.currentElection?.candidates ??
               ElectionService.determineCandidates(_gameState.society),
+        ),
+      ),
+    );
+  }
+
+  /// 投票率（有権者参加率）画面を開く。
+  ///
+  /// 選挙の記録が無い場合は遷移せず、案内を出す。
+  void _openTurnout() {
+    final turnout = TurnoutService.forGameState(
+      _gameState,
+      playerAbstained: _abstained,
+    );
+    if (turnout == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('まだ選挙の記録がありません')),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TurnoutScreen(
+          electionTitle: turnout.electionTitle,
+          turnout: turnout,
+          counterfactual: TurnoutService.counterfactualForGameState(
+            _gameState,
+            playerAbstained: _abstained,
+          ),
         ),
       ),
     );
@@ -585,6 +615,7 @@ class _GameScreenState extends State<GameScreen> {
           onStartElection: _onStartElection,
           onOpenSupportSimulation: _openSupportSimulation,
           onOpenAlmanac: _openAlmanac,
+          onOpenTurnout: _openTurnout,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
@@ -616,6 +647,7 @@ class _GameScreenState extends State<GameScreen> {
           lifeParamChanges: _lifeParamChanges,
           votedCandidateId: _votedCandidateId,
           abstained: _abstained,
+          society: _gameState.society,
           onContinue: _onContinue,
         );
       case GamePhase.ending:

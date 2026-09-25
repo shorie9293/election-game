@@ -168,6 +168,20 @@ class AppKeys {
   static Key themeModeOption(String storageKey) =>
       Key('theme_mode_option_$storageKey');
 
+  // Turnout（投票率）
+  static const turnoutScreen = Key('turnout_screen');
+  static const turnoutTitle = Key('turnout_title');
+  static const turnoutRateLabel = Key('turnout_rate_label');
+  static const turnoutVoterSummary = Key('turnout_voter_summary');
+  static const turnoutLevelLabel = Key('turnout_level_label');
+  static const turnoutJobList = Key('turnout_job_list');
+  static const turnoutCounterfactualCard = Key('turnout_counterfactual_card');
+  static const turnoutVerdictLabel = Key('turnout_verdict_label');
+  static const turnoutResultCard = Key('turnout_result_card');
+  static const homeTurnoutButton = Key('home_turnout_button');
+  static Key turnoutJobRow(String jobName) => Key('turnout_job_row_$jobName');
+  static Key turnoutJobRate(String jobName) => Key('turnout_job_rate_$jobName');
+
   // Sound settings（サウンド設定）
   static const soundSettingsScreen = Key('sound_settings_screen');
   static const soundSettingsEntry = Key('sound_settings_entry');
