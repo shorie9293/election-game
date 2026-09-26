@@ -28,6 +28,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenSupportSimulation;
   final VoidCallback? onOpenAlmanac;
   final VoidCallback? onOpenTurnout;
+  final VoidCallback? onOpenPoliticalGroups;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -48,6 +49,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenSupportSimulation,
     this.onOpenAlmanac,
     this.onOpenTurnout,
+    this.onOpenPoliticalGroups,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -224,6 +226,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.how_to_vote),
             tooltip: '投票率',
             onPressed: widget.onOpenTurnout,
+          ),
+          IconButton(
+            key: AppKeys.homePoliticalGroupsButton,
+            icon: const Icon(Icons.account_balance),
+            tooltip: '政党の可視化',
+            onPressed: widget.onOpenPoliticalGroups,
           ),
           IconButton(
             key: AppKeys.homeTextScaleButton,

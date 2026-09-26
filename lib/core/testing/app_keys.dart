@@ -190,4 +190,28 @@ class AppKeys {
   static const soundVolumeSlider = Key('sound_volume_slider');
   static const soundVolumeLabel = Key('sound_volume_label');
   static const soundSummaryLabel = Key('sound_summary_label');
+
+  // Political groups（政党の可視化）
+  static const politicalGroupsScreen = Key('political_groups_screen');
+  static const politicalGroupsTitle = Key('political_groups_title');
+  static const politicalGroupsSummaryCard = Key('political_groups_summary_card');
+  static const politicalGroupsSearchField = Key('political_groups_search_field');
+  static const politicalGroupsSearchClear = Key('political_groups_search_clear');
+  static const politicalGroupsSortButton = Key('political_groups_sort_button');
+  static const politicalGroupsCountLabel = Key('political_groups_count_label');
+  static const politicalGroupsList = Key('political_groups_list');
+  static const politicalGroupsSupportList = Key('political_groups_support_list');
+  static const politicalGroupsEmptyState = Key('political_groups_empty_state');
+  static const politicalGroupsDetailDialog = Key('political_groups_detail_dialog');
+  static const politicalGroupsDetailCloseButton =
+      Key('political_groups_detail_close_button');
+  static const homePoliticalGroupsButton = Key('home_political_groups_button');
+  static Key politicalGroupsMarker(String groupId) =>
+      Key('political_groups_marker_$groupId');
+  static Key politicalGroupsCard(String groupId) =>
+      Key('political_groups_card_$groupId');
+  static Key politicalGroupsQuadrantChip(String label) =>
+      Key('political_groups_quadrant_chip_$label');
+  static Key politicalGroupsSupportRow(String candidateId) =>
+      Key('political_groups_support_row_$candidateId');
 }

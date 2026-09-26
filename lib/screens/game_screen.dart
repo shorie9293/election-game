@@ -11,6 +11,7 @@ import 'package:election_game/features/support/presentation/support_simulation_s
 import 'package:election_game/features/almanac/presentation/candidate_almanac_screen.dart';
 import 'package:election_game/domain/services/turnout_service.dart';
 import 'package:election_game/features/turnout/presentation/turnout_screen.dart';
+import 'package:election_game/features/groups/presentation/political_groups_screen.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/features/citizen/presentation/citizen_create_screen.dart';
 import 'package:election_game/features/election/presentation/election_announcement_screen.dart';
@@ -172,6 +173,15 @@ class _GameScreenState extends State<GameScreen> {
             playerAbstained: _abstained,
           ),
         ),
+      ),
+    );
+  }
+
+  /// 政党（政治団体）の可視化画面を開く。
+  void _openPoliticalGroups() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const PoliticalGroupsScreen(),
       ),
     );
   }
@@ -616,6 +626,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenSupportSimulation: _openSupportSimulation,
           onOpenAlmanac: _openAlmanac,
           onOpenTurnout: _openTurnout,
+          onOpenPoliticalGroups: _openPoliticalGroups,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
