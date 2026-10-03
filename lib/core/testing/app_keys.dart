@@ -214,4 +214,19 @@ class AppKeys {
       Key('political_groups_quadrant_chip_$label');
   static Key politicalGroupsSupportRow(String candidateId) =>
       Key('political_groups_support_row_$candidateId');
+
+  // Election prediction（選挙結果の予想と答え合わせ）
+  static const predictionScreen = Key('prediction_screen');
+  static const predictionTitle = Key('prediction_title');
+  static const predictionShareSlider = Key('prediction_share_slider');
+  static const predictionShareLabel = Key('prediction_share_label');
+  static const predictionSaveButton = Key('prediction_save_button');
+  static const predictionOutcomeCard = Key('prediction_outcome_card');
+  static const predictionWinnerHitBadge = Key('prediction_winner_hit_badge');
+  static const predictionShareErrorLabel = Key('prediction_share_error_label');
+  static const predictionScoreLabel = Key('prediction_score_label');
+  static const predictionAccuracyLabel = Key('prediction_accuracy_label');
+  static const homePredictionButton = Key('home_prediction_button');
+  static Key predictionCandidateOption(String id) =>
+      Key('prediction_candidate_option_$id');
 }

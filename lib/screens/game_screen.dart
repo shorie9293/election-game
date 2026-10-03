@@ -12,6 +12,7 @@ import 'package:election_game/features/almanac/presentation/candidate_almanac_sc
 import 'package:election_game/domain/services/turnout_service.dart';
 import 'package:election_game/features/turnout/presentation/turnout_screen.dart';
 import 'package:election_game/features/groups/presentation/political_groups_screen.dart';
+import 'package:election_game/features/prediction/presentation/prediction_screen.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/features/citizen/presentation/citizen_create_screen.dart';
 import 'package:election_game/features/election/presentation/election_announcement_screen.dart';
@@ -172,6 +173,24 @@ class _GameScreenState extends State<GameScreen> {
             _gameState,
             playerAbstained: _abstained,
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 選挙結果の予想（答え合わせ）画面を開く。
+  void _openPrediction() {
+    final current = _gameState.currentElection;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PredictionScreen(
+          electionId: current?.id ?? 'upcoming_election',
+          electionTitle: current?.title ?? '次回の選挙',
+          candidates: current?.candidates ??
+              ElectionService.determineCandidates(_gameState.society),
+          completedElection: (current != null && current.completed)
+              ? current
+              : null,
         ),
       ),
     );
@@ -627,6 +646,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenAlmanac: _openAlmanac,
           onOpenTurnout: _openTurnout,
           onOpenPoliticalGroups: _openPoliticalGroups,
+          onOpenPrediction: _openPrediction,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
