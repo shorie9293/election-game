@@ -229,4 +229,14 @@ class AppKeys {
   static const homePredictionButton = Key('home_prediction_button');
   static Key predictionCandidateOption(String id) =>
       Key('prediction_candidate_option_$id');
+
+  // Election recap（選挙の振り返りカード）
+  static const recapTitle = Key('recap_title');
+  static const recapCard = Key('recap_card');
+  static const recapText = Key('recap_text');
+  static const recapSelector = Key('recap_selector');
+  static const recapCopyButton = Key('recap_copy_button');
+  static const recapEmptyState = Key('recap_empty_state');
+  static const recapSnackBar = Key('recap_snack_bar');
+  static const archiveRecapButton = Key('archive_recap_button');
 }

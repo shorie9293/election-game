@@ -8,6 +8,7 @@ import 'package:election_game/domain/models/election_archive.dart';
 import 'package:election_game/domain/models/election_scale.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/domain/services/election_archive_service.dart';
+import 'package:election_game/features/recap/presentation/election_recap_screen.dart';
 
 /// 選挙アーカイブ（過去選挙の結果と政策影響の俯瞰）画面。
 ///
@@ -86,6 +87,24 @@ class _ElectionArchiveScreenState extends State<ElectionArchiveScreen> {
       backgroundColor: RetroPalette.bgDark,
       appBar: AppBar(
         title: const Text('選挙アーカイブ', key: AppKeys.archiveTitle),
+        actions: [
+          IconButton(
+            key: AppKeys.archiveRecapButton,
+            icon: const Icon(Icons.ios_share),
+            tooltip: '振り返りカード',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ElectionRecapScreen(
+                    entries: _entries,
+                    repository: widget.repository,
+                    rawElections: widget.rawElections,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _entries.isEmpty
           ? const _EmptyState()
