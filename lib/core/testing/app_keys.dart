@@ -239,4 +239,20 @@ class AppKeys {
   static const recapEmptyState = Key('recap_empty_state');
   static const recapSnackBar = Key('recap_snack_bar');
   static const archiveRecapButton = Key('archive_recap_button');
+
+  // Glossary（政治用語辞典）
+  static const glossaryScreen = Key('glossary_screen');
+  static const glossaryTitle = Key('glossary_title');
+  static const glossarySearchField = Key('glossary_search_field');
+  static const glossarySearchClear = Key('glossary_search_clear');
+  static const glossarySortButton = Key('glossary_sort_button');
+  static const glossaryListCount = Key('glossary_list_count');
+  static const glossaryEmptyState = Key('glossary_empty_state');
+  static const glossaryCategoryFilterAll =
+      Key('glossary_category_filter_all');
+  static const homeGlossaryButton = Key('home_glossary_button');
+  static Key glossaryCategoryChip(String label) =>
+      Key('glossary_category_chip_$label');
+  static Key glossaryTermTile(String id) =>
+      Key('glossary_term_tile_$id');
 }

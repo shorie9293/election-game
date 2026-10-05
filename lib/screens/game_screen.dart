@@ -13,6 +13,7 @@ import 'package:election_game/domain/services/turnout_service.dart';
 import 'package:election_game/features/turnout/presentation/turnout_screen.dart';
 import 'package:election_game/features/groups/presentation/political_groups_screen.dart';
 import 'package:election_game/features/prediction/presentation/prediction_screen.dart';
+import 'package:election_game/features/glossary/presentation/glossary_screen.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/features/citizen/presentation/citizen_create_screen.dart';
 import 'package:election_game/features/election/presentation/election_announcement_screen.dart';
@@ -201,6 +202,15 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const PoliticalGroupsScreen(),
+      ),
+    );
+  }
+
+  /// 政治用語辞典画面を開く。
+  void _openGlossary() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const GlossaryScreen(),
       ),
     );
   }
@@ -647,6 +657,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenTurnout: _openTurnout,
           onOpenPoliticalGroups: _openPoliticalGroups,
           onOpenPrediction: _openPrediction,
+          onOpenGlossary: _openGlossary,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,

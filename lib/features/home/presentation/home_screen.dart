@@ -30,6 +30,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenTurnout;
   final VoidCallback? onOpenPoliticalGroups;
   final VoidCallback? onOpenPrediction;
+  final VoidCallback? onOpenGlossary;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -52,6 +53,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenTurnout,
     this.onOpenPoliticalGroups,
     this.onOpenPrediction,
+    this.onOpenGlossary,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -240,6 +242,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.account_balance),
             tooltip: '政党の可視化',
             onPressed: widget.onOpenPoliticalGroups,
+          ),
+          IconButton(
+            key: AppKeys.homeGlossaryButton,
+            icon: const Icon(Icons.menu_book),
+            tooltip: '政治用語辞典',
+            onPressed: widget.onOpenGlossary,
           ),
           IconButton(
             key: AppKeys.homeTextScaleButton,
