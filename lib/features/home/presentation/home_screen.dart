@@ -14,6 +14,7 @@ import 'package:election_game/features/settings/presentation/sound_settings_scre
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
+import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 
@@ -199,6 +200,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// データのエクスポート/バックアップ画面を開く。
+  void _openBackup(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => GameDataBackupScreen(
+          key: AppKeys.backupScreen,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isFirstBuild) {
@@ -266,6 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.volume_up),
             tooltip: 'サウンド設定',
             onPressed: () => _openSoundSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.homeBackupButton,
+            icon: const Icon(Icons.save_alt),
+            tooltip: 'データのエクスポート/バックアップ',
+            onPressed: () => _openBackup(context),
           ),
         ],
       ),

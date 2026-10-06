@@ -255,4 +255,18 @@ class AppKeys {
       Key('glossary_category_chip_$label');
   static Key glossaryTermTile(String id) =>
       Key('glossary_term_tile_$id');
+
+  // Backup（データのエクスポート/バックアップ）
+  static const backupScreen = Key('backup_screen');
+  static const backupEntryCountLabel = Key('backup_entry_count_label');
+  static const backupExportButton = Key('backup_export_button');
+  static const backupExportOutput = Key('backup_export_output');
+  static const backupCopyButton = Key('backup_copy_button');
+  static const backupImportField = Key('backup_import_field');
+  static const backupRestoreButton = Key('backup_restore_button');
+  static const backupRestoreConfirmButton = Key('backup_restore_confirm_button');
+  static const backupStatusLabel = Key('backup_status_label');
+  static const backupErrorLabel = Key('backup_error_label');
+  static const homeBackupButton = Key('home_backup_button');
+  static Key backupCategoryRow(String name) => Key('backup_category_row_$name');
 }
