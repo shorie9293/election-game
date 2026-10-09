@@ -36,6 +36,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenPrediction;
   final VoidCallback? onOpenGlossary;
   final VoidCallback? onOpenManifesto;
+  final VoidCallback? onOpenLifeParamTrend;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -60,6 +61,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenPrediction,
     this.onOpenGlossary,
     this.onOpenManifesto,
+    this.onOpenLifeParamTrend,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -307,6 +309,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.volume_up),
             tooltip: 'サウンド設定',
             onPressed: () => _openSoundSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.homeLifeParamTrendButton,
+            icon: const Icon(Icons.trending_up),
+            tooltip: '生活パラメータの推移',
+            onPressed: widget.onOpenLifeParamTrend,
           ),
           IconButton(
             key: AppKeys.homeBackupButton,

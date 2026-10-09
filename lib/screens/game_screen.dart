@@ -38,6 +38,9 @@ import 'package:election_game/domain/repositories/election_archive_repository.da
 import 'package:election_game/domain/services/manifesto_service.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
+import 'package:election_game/features/lifetrend/presentation/life_param_trend_screen.dart';
+import 'package:election_game/domain/repositories/life_param_snapshot_repository.dart';
+import 'package:election_game/domain/services/life_param_trend_service.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
 import 'package:election_game/services/sfx_service.dart';
@@ -54,6 +57,9 @@ class GameScreen extends StatefulWidget {
 
   /// 公約実現度トラッカーの永続化先リポジトリ（試練では差し替え可能）
   final ManifestoRepository manifestoRepository;
+
+  /// 生活パラメータ推移の永続化先リポジトリ（試練では差し替え可能）
+  final LifeParamSnapshotRepository lifeParamSnapshotRepository;
 
   /// アプリ全体の文字サイズ倍率（main で読み込み・永続化）
   final double textScale;
@@ -83,6 +89,8 @@ class GameScreen extends StatefulWidget {
     super.key,
     this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
     this.manifestoRepository = const SharedPreferencesManifestoRepository(),
+    this.lifeParamSnapshotRepository =
+        const SharedPreferencesLifeParamSnapshotRepository(),
     this.textScale = TextScaleSetting.normalScale,
     this.onScaleChanged,
     this.themeMode = ThemeModeSetting.system,
@@ -228,6 +236,18 @@ class _GameScreenState extends State<GameScreen> {
       MaterialPageRoute<void>(
         builder: (_) => ManifestoTrackerScreen(
           repository: widget.manifestoRepository,
+        ),
+      ),
+    );
+  }
+
+  /// 生活パラメータの推移画面を開く。
+  void _openLifeParamTrend() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LifeParamTrendScreen(
+          key: AppKeys.lifeParamTrendScreen,
+          repository: widget.lifeParamSnapshotRepository,
         ),
       ),
     );
@@ -545,6 +565,11 @@ class _GameScreenState extends State<GameScreen> {
     final updatedCitizen =
         _gameState.citizen.copyWith(lifeParams: newLifeParams);
 
+    // 選挙後の生活パラメータをスナップショットとして記録（重複は repository 側で防止）
+    widget.lifeParamSnapshotRepository.add(
+      LifeParamTrendService.fromElection(result, newLifeParams),
+    );
+
     // 社会ムード変化を計算
     final newMood = ElectionService.computeMoodChange(
       _gameState.society,
@@ -695,6 +720,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenPrediction: _openPrediction,
           onOpenGlossary: _openGlossary,
           onOpenManifesto: _openManifesto,
+          onOpenLifeParamTrend: _openLifeParamTrend,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,

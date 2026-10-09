@@ -297,4 +297,14 @@ class AppKeys {
       Key('reminder_weekday_chip_$weekday');
   static Key reminderKindSwitch(String name) =>
       Key('reminder_kind_switch_$name');
+
+  // Life param trend（生活パラメータの推移）
+  static const lifeParamTrendScreen = Key('life_param_trend_screen');
+  static const homeLifeParamTrendButton = Key('home_life_param_trend_button');
+  static const lifeParamTrendEmpty = Key('life_param_trend_empty');
+  static const lifeParamTrendLatest = Key('life_param_trend_latest');
+  static Key lifeParamTrendKeyChip(String key) =>
+      Key('life_param_trend_key_chip_$key');
+  static Key lifeParamTrendBar(String electionId) =>
+      Key('life_param_trend_bar_$electionId');
 }
