@@ -17,6 +17,8 @@ import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
+import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
+import 'package:election_game/domain/repositories/manifesto_repository.dart';
 
 /// メイン画面（生活パラメータ＋行動選択＋デイリーイベント）
 class HomeScreen extends StatefulWidget {
@@ -32,6 +34,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenPoliticalGroups;
   final VoidCallback? onOpenPrediction;
   final VoidCallback? onOpenGlossary;
+  final VoidCallback? onOpenManifesto;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -55,6 +58,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenPoliticalGroups,
     this.onOpenPrediction,
     this.onOpenGlossary,
+    this.onOpenManifesto,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -195,6 +199,19 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => const ElectionArchiveScreen(
           entries: [],
           repository: SharedPreferencesElectionArchiveRepository(),
+        ),
+      ),
+    );
+  }
+
+  /// 公約実現度トラッカー画面へ遷移する。
+  ///
+  /// アーカイブと同様、repository から直接読込する設計。
+  void _openManifesto(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ManifestoTrackerScreen(
+          repository: const SharedPreferencesManifestoRepository(),
         ),
       ),
     );
@@ -421,6 +438,17 @@ class _HomeScreenState extends State<HomeScreen> {
               description: '過去の選挙結果と政策影響の推移を振り返る',
               color: RetroPalette.panelBorder,
               onPressed: () => _openArchive(context),
+            ),
+            const SizedBox(height: 12),
+
+            // 公約実現度トラッカー（当選者の公約の実現度）
+            _ActionButton(
+              key: AppKeys.homeManifestoButton,
+              icon: Icons.fact_check,
+              label: '公約実現度トラッカー',
+              description: '当選者の公約がどれだけ実現したかを見る',
+              color: RetroPalette.voteAbstain,
+              onPressed: () => _openManifesto(context),
             ),
             const SizedBox(height: 12),
 

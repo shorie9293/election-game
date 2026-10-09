@@ -269,4 +269,18 @@ class AppKeys {
   static const backupErrorLabel = Key('backup_error_label');
   static const homeBackupButton = Key('home_backup_button');
   static Key backupCategoryRow(String name) => Key('backup_category_row_$name');
+
+  // Manifesto tracker（公約実現度トラッカー）
+  static const manifestoScreen = Key('manifesto_screen');
+  static const manifestoTitle = Key('manifesto_title');
+  static const manifestoSummary = Key('manifesto_summary');
+  static const manifestoSearchField = Key('manifesto_search_field');
+  static const manifestoSearchClear = Key('manifesto_search_clear');
+  static const manifestoListCount = Key('manifesto_list_count');
+  static const manifestoEmptyState = Key('manifesto_empty_state');
+  static const homeManifestoButton = Key('home_manifesto_button');
+  static Key manifestoRecordCard(String electionId) =>
+      Key('manifesto_record_card_$electionId');
+  static Key manifestoPledgeRow(String electionId, String lifeParamKey) =>
+      Key('manifesto_pledge_row_${electionId}_$lifeParamKey');
 }

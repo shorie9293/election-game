@@ -35,6 +35,9 @@ import 'package:election_game/features/town_square/presentation/town_square_scre
 import 'package:election_game/domain/models/citizen_npc_relationship.dart';
 import 'package:election_game/domain/models/opposition_citizen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
+import 'package:election_game/domain/services/manifesto_service.dart';
+import 'package:election_game/domain/repositories/manifesto_repository.dart';
+import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
 import 'package:election_game/services/sfx_service.dart';
@@ -48,6 +51,9 @@ import 'package:election_game/core/sound/sound_settings.dart';
 class GameScreen extends StatefulWidget {
   /// 選挙アーカイブの永続化先リポジトリ（試練では差し替え可能）
   final ElectionArchiveRepository archiveRepository;
+
+  /// 公約実現度トラッカーの永続化先リポジトリ（試練では差し替え可能）
+  final ManifestoRepository manifestoRepository;
 
   /// アプリ全体の文字サイズ倍率（main で読み込み・永続化）
   final double textScale;
@@ -76,6 +82,7 @@ class GameScreen extends StatefulWidget {
   const GameScreen({
     super.key,
     this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
+    this.manifestoRepository = const SharedPreferencesManifestoRepository(),
     this.textScale = TextScaleSetting.normalScale,
     this.onScaleChanged,
     this.themeMode = ThemeModeSetting.system,
@@ -211,6 +218,17 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const GlossaryScreen(),
+      ),
+    );
+  }
+
+  /// 公約実現度トラッカー画面を開く。
+  void _openManifesto() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ManifestoTrackerScreen(
+          repository: widget.manifestoRepository,
+        ),
       ),
     );
   }
@@ -464,6 +482,15 @@ class _GameScreenState extends State<GameScreen> {
     );
     _lifeParamChanges =
         _computeLifeParamDiff(_gameState.citizen.lifeParams, newLifeParams);
+    final manifestoRecord = ManifestoService.fromResult(
+      result: result,
+      before: _gameState.citizen.lifeParams,
+      after: newLifeParams,
+    );
+    if (manifestoRecord != null) {
+      widget.manifestoRepository
+          .add(manifestoRecord.copyWith(occurredAt: DateTime.now()));
+    }
 
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
@@ -488,6 +515,15 @@ class _GameScreenState extends State<GameScreen> {
     );
     _lifeParamChanges =
         _computeLifeParamDiff(_gameState.citizen.lifeParams, newLifeParams);
+    final manifestoRecord = ManifestoService.fromResult(
+      result: result,
+      before: _gameState.citizen.lifeParams,
+      after: newLifeParams,
+    );
+    if (manifestoRecord != null) {
+      widget.manifestoRepository
+          .add(manifestoRecord.copyWith(occurredAt: DateTime.now()));
+    }
 
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
@@ -658,6 +694,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenPoliticalGroups: _openPoliticalGroups,
           onOpenPrediction: _openPrediction,
           onOpenGlossary: _openGlossary,
+          onOpenManifesto: _openManifesto,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
