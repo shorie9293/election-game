@@ -283,4 +283,18 @@ class AppKeys {
       Key('manifesto_record_card_$electionId');
   static Key manifestoPledgeRow(String electionId, String lifeParamKey) =>
       Key('manifesto_pledge_row_${electionId}_$lifeParamKey');
+
+  // Election reminder（選挙リマインダー・通知設定）
+  static const reminderSettingsScreen = Key('reminder_settings_screen');
+  static const reminderEnabledSwitch = Key('reminder_enabled_switch');
+  static const reminderHourDropdown = Key('reminder_hour_dropdown');
+  static const reminderMinuteDropdown = Key('reminder_minute_dropdown');
+  static const reminderSaveButton = Key('reminder_save_button');
+  static const reminderTestButton = Key('reminder_test_button');
+  static const reminderStatusLabel = Key('reminder_status_label');
+  static const homeReminderButton = Key('home_reminder_button');
+  static Key reminderWeekdayChip(int weekday) =>
+      Key('reminder_weekday_chip_$weekday');
+  static Key reminderKindSwitch(String name) =>
+      Key('reminder_kind_switch_$name');
 }

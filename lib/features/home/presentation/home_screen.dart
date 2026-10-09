@@ -18,6 +18,7 @@ import 'package:election_game/features/backup/presentation/game_data_backup_scre
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
+import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
 
 /// メイン画面（生活パラメータ＋行動選択＋デイリーイベント）
@@ -217,6 +218,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// 通知設定画面へ遷移する。
+  void _openReminderSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const ElectionReminderSettingsScreen(
+          key: AppKeys.reminderSettingsScreen,
+        ),
+      ),
+    );
+  }
+
   /// データのエクスポート/バックアップ画面を開く。
   void _openBackup(BuildContext context) {
     Navigator.of(context).push(
@@ -301,6 +313,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.save_alt),
             tooltip: 'データのエクスポート/バックアップ',
             onPressed: () => _openBackup(context),
+          ),
+          IconButton(
+            key: AppKeys.homeReminderButton,
+            icon: const Icon(Icons.notifications_active),
+            tooltip: '通知設定',
+            onPressed: () => _openReminderSettings(context),
           ),
         ],
       ),
