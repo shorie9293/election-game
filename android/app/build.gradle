@@ -21,7 +21,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
+        // Groovy DSL では Kotlin DSL の isCoreLibraryDesugaringEnabled は
+        // 未知プロパティとなり Gradle が評価に失敗する（kozuchi の実働設定と同一表記）
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
