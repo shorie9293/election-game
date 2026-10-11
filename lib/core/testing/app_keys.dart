@@ -307,4 +307,18 @@ class AppKeys {
       Key('life_param_trend_key_chip_$key');
   static Key lifeParamTrendBar(String electionId) =>
       Key('life_param_trend_bar_$electionId');
+
+  // Election chart（選挙結果グラフ分析）
+  static const chartScreen = Key('chart_screen');
+  static const archiveChartButton = Key('archive_chart_button');
+  static const chartEmptyState = Key('chart_empty_state');
+  static const chartSummaryCard = Key('chart_summary_card');
+  static const chartShareTrend = Key('chart_share_trend');
+  static const chartPartyTrend = Key('chart_party_trend');
+  static const chartComparison = Key('chart_comparison');
+  static const chartCompareHint = Key('chart_compare_hint');
+  static Key chartPointChip(String electionId) =>
+      Key('chart_point_chip_$electionId');
+  static Key chartPartyRow(String faction) =>
+      Key('chart_party_row_$faction');
 }
