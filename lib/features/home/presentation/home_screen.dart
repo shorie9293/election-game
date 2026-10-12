@@ -15,6 +15,7 @@ import 'package:election_game/features/settings/presentation/theme_mode_settings
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
+import 'package:election_game/features/heatmap/presentation/play_activity_heatmap_screen.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
@@ -231,6 +232,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// 選挙プレイの活動ヒートマップ画面へ遷移する。
+  ///
+  /// アーカイブと同様、repository から直接読込する設計。
+  void _openPlayActivityHeatmap(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const PlayActivityHeatmapScreen(),
+      ),
+    );
+  }
+
   /// データのエクスポート/バックアップ画面を開く。
   void _openBackup(BuildContext context) {
     Navigator.of(context).push(
@@ -315,6 +327,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.trending_up),
             tooltip: '生活パラメータの推移',
             onPressed: widget.onOpenLifeParamTrend,
+          ),
+          IconButton(
+            key: AppKeys.homePlayHeatmapButton,
+            icon: const Icon(Icons.calendar_month),
+            tooltip: '選挙プレイの歩み',
+            onPressed: () => _openPlayActivityHeatmap(context),
           ),
           IconButton(
             key: AppKeys.homeBackupButton,

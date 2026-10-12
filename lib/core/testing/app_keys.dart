@@ -321,4 +321,13 @@ class AppKeys {
       Key('chart_point_chip_$electionId');
   static Key chartPartyRow(String faction) =>
       Key('chart_party_row_$faction');
+
+  // Play activity heatmap（選挙プレイの活動ヒートマップ）
+  static const playHeatmapScreen = Key('play_heatmap_screen');
+  static const homePlayHeatmapButton = Key('home_play_heatmap_button');
+  static const playHeatmapEmpty = Key('play_heatmap_empty');
+  static const playHeatmapSummary = Key('play_heatmap_summary');
+  static const playHeatmapGrid = Key('play_heatmap_grid');
+  static const playHeatmapLegend = Key('play_heatmap_legend');
+  static Key playHeatmapCell(String dateKey) => Key('play_heatmap_cell_$dateKey');
 }
