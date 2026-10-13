@@ -330,4 +330,20 @@ class AppKeys {
   static const playHeatmapGrid = Key('play_heatmap_grid');
   static const playHeatmapLegend = Key('play_heatmap_legend');
   static Key playHeatmapCell(String dateKey) => Key('play_heatmap_cell_$dateKey');
+
+  // Quiz mistake notebook（選挙クイズの間違い復習ノート）
+  static const quizNotebookScreen = Key('quiz_notebook_screen');
+  static const homeQuizNotebookButton = Key('home_quiz_notebook_button');
+  static const quizNotebookEmpty = Key('quiz_notebook_empty');
+  static const quizNotebookSummary = Key('quiz_notebook_summary');
+  static const quizNotebookList = Key('quiz_notebook_list');
+  static const quizNotebookMasteredSection = Key('quiz_notebook_mastered_section');
+  static const quizNotebookRetryButton = Key('quiz_notebook_retry_button');
+  static const quizNotebookClearButton = Key('quiz_notebook_clear_button');
+  static const quizNotebookClearConfirmButton =
+      Key('quiz_notebook_clear_confirm_button');
+  static Key quizNotebookCategoryChip(String name) =>
+      Key('quiz_notebook_category_chip_$name');
+  static Key quizNotebookEntryCard(String questionId) =>
+      Key('quiz_notebook_entry_card_$questionId');
 }

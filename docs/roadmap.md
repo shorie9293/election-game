@@ -1,9 +1,9 @@
 # 【election-game 道標】
 
 **制定**: 令和八年皐月十二日
-**更新**: 令和八年長月二十四日（長月二十四日 — #88 サウンド設定。BGM/効果音のON・OFFと音量の設定・永続化・再生反映。全640通過確認。v1.0.10+16）[イシコリ]
+**更新**: 令和八年長月十三日（長月十三日 — #130 選挙クイズの間違い復習ノート。誤答の永続記録・カテゴリ絞込・克服トラッキング・未克服のみの再挑戦。全1291通過確認。v1.0.22+29）[イシコリ]
 **元神想書**: `shinsho/election-game-citizen-shinso.md`（351行）
-**試験**: 640/640通過 ✅
+**試験**: 1291/1291通過 ✅
 
 ---
 
@@ -22,6 +22,7 @@
 | Phase 4.5 | 支持率シミュレーション（#74・OpinionService のデッド資産配線＋SupportSimulationScreen） | ✅ 完了（498/498、+49試験） |
 | Phase 4.6 | 候補者名鑑（#83・CandidateAlmanacService＋CandidateAlmanacScreen・検索/派閥絞込/並替/公約詳細） | ✅ 完了（565/565、+67試験） |
 | Phase 4.7 | サウンド設定（#88・SoundSettings/SoundSettingsRepository＋SoundSettingsScreen・BGM/効果音のON・OFFと音量の永続化と再生反映） | ✅ 完了（640/640、+75試験） |
+| Phase 4.8 | 間違い復習ノート（#130・QuizMistakeEntry/QuizMistakeService＋QuizMistakeNotebookScreen・誤答の永続記録/カテゴリ絞込/克服トラッキング/未克服のみの再挑戦） | ✅ 完了（1291/1291、+83試験） |
 
 ---
 

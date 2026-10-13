@@ -9,6 +9,7 @@ import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
+import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
@@ -189,6 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openQuiz(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const QuizScreen()),
+    );
+  }
+
+  /// 間違い復習ノート画面へ遷移する
+  void _openQuizNotebook(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const QuizMistakeNotebookScreen(),
+      ),
     );
   }
 
@@ -471,6 +481,17 @@ class _HomeScreenState extends State<HomeScreen> {
               description: '選挙制度と政策の理解度をクイズで確かめる',
               color: RetroPalette.gold,
               onPressed: () => _openQuiz(context),
+            ),
+            const SizedBox(height: 12),
+
+            // 間違い復習ノート（誤答の持ち越し復習）
+            _ActionButton(
+              key: AppKeys.homeQuizNotebookButton,
+              icon: Icons.menu_book,
+              label: '間違い復習ノート',
+              description: 'クイズで間違えた問題を持ち越して復習・再挑戦する',
+              color: RetroPalette.voteAbstain,
+              onPressed: () => _openQuizNotebook(context),
             ),
             const SizedBox(height: 12),
 

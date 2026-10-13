@@ -5,7 +5,9 @@ import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/domain/models/quiz_question.dart';
 import 'package:election_game/domain/models/quiz_result.dart';
+import 'package:election_game/domain/repositories/quiz_mistake_repository.dart';
 import 'package:election_game/domain/repositories/quiz_repository.dart';
+import 'package:election_game/domain/services/quiz_mistake_service.dart';
 import 'package:election_game/domain/services/quiz_service.dart';
 
 /// 政策・制度クイズ（理解度テスト）画面。
@@ -17,12 +19,16 @@ class QuizScreen extends StatefulWidget {
   /// 自己ベスト永続化リポジトリ（試練では差し替え可能）
   final QuizRepository repository;
 
+  /// 誤答復習ノートの永続化リポジトリ（試練では差し替え可能）
+  final QuizMistakeRepository mistakeRepository;
+
   /// 出題する問題（未指定なら標準問題バンク）
   final List<QuizQuestion>? questions;
 
   const QuizScreen({
     super.key,
     this.repository = const QuizRepository(),
+    this.mistakeRepository = const SharedPreferencesQuizMistakeRepository(),
     this.questions,
   });
 
@@ -85,12 +91,31 @@ class _QuizScreenState extends State<QuizScreen> {
       _result = result;
       _saving = true;
     });
+    await _recordMistakes(result);
     final best = await widget.repository.saveResult(result);
     if (!mounted) return;
     setState(() {
       _best = best;
       _saving = false;
     });
+  }
+
+  /// 採点結果を誤答復習ノートへ反映する。
+  ///
+  /// 永続化の失敗でクイズ自体が止まらないよう例外は握りつぶす。
+  Future<void> _recordMistakes(QuizResult result) async {
+    try {
+      final existing = await widget.mistakeRepository.load();
+      final updated = QuizMistakeService.record(
+        existing,
+        _questions,
+        result,
+        now: DateTime.now(),
+      );
+      await widget.mistakeRepository.save(updated);
+    } catch (_) {
+      // 復習ノートの保存失敗はクイズの採点結果に影響させない
+    }
   }
 
   void _retry() {
