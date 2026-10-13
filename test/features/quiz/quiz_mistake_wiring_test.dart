@@ -29,7 +29,10 @@ void main() {
     ),
   ];
 
-  final base = DateTime(2026, 10, 13, 9, 0);
+  /// 過去の固定時刻（端末時計・CIのタイムゾーンに依存しない）。
+  /// 実時計（DateTime.now()）と比較される試練では必ず「十分に過去」を使え
+  /// —— CI は UTC で走るため、固定時刻を未来に置くと時限爆弾になる。
+  final base = DateTime.utc(2020, 1, 1);
 
   QuizMistakeEntry entry({
     required String questionId,

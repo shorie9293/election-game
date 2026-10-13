@@ -149,6 +149,21 @@ void main() {
       expect(q1.lastSelectedIndex, 0);
     });
 
+    test('端末時計が誤答日時より前でも克服は記録される（クランプ）', () {
+      final recorded = entry(questionId: 'q1', lastWrongAt: now);
+      final earlier = now.subtract(const Duration(days: 1));
+      final result = QuizMistakeService.record(
+        [recorded],
+        questions,
+        QuizService.grade(questions, [1, 0]),
+        now: earlier,
+      );
+
+      final q1 = result.firstWhere((e) => e.questionId == 'q1');
+      expect(q1.isMastered, isTrue);
+      expect(q1.masteredAt, now);
+    });
+
     test('克服後に再び誤答すると未克服へ戻り回数が増える', () {
       final mastered = entry(masteredAt: now);
       final reWrong = QuizMistakeService.record(

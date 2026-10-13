@@ -41,7 +41,11 @@ class QuizMistakeService {
           byId[question.id] = previous.copyWith(
             category: question.category,
             correctIndex: question.correctIndex,
-            masteredAt: now,
+            // 端末時計が巻き戻っていても「克服日時 < 誤答日時」の不変条件を
+            // 破らないようクランプする（不変条件違反は克服記録の消失を招く）。
+            masteredAt: now.isBefore(previous.lastWrongAt)
+                ? previous.lastWrongAt
+                : now,
           );
         }
         continue;
