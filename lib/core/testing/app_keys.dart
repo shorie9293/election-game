@@ -346,4 +346,15 @@ class AppKeys {
       Key('quiz_notebook_category_chip_$name');
   static Key quizNotebookEntryCard(String questionId) =>
       Key('quiz_notebook_entry_card_$questionId');
+
+  // Achievement badges（プレイヤー実績バッジ）
+  static const achievementScreen = Key('achievement_screen');
+  static const homeAchievementsButton = Key('home_achievements_button');
+  static const achievementSummary = Key('achievement_summary');
+  static const achievementList = Key('achievement_list');
+  static Key achievementTierSection(String tier) =>
+      Key('achievement_tier_section_$tier');
+  static Key achievementBadgeRow(String id) => Key('achievement_badge_row_$id');
+  static Key achievementBadgeProgress(String id) =>
+      Key('achievement_badge_progress_$id');
 }

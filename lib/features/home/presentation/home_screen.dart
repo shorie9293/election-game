@@ -39,6 +39,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenGlossary;
   final VoidCallback? onOpenManifesto;
   final VoidCallback? onOpenLifeParamTrend;
+  final VoidCallback? onOpenAchievements;
   final void Function(DailyAction action)? onActionSelected;
   final void Function(DailyEvent event, EventChoice choice)? onChoiceSelected;
   final double textScale;
@@ -64,6 +65,7 @@ class HomeScreen extends StatefulWidget {
     this.onOpenGlossary,
     this.onOpenManifesto,
     this.onOpenLifeParamTrend,
+    this.onOpenAchievements,
     this.onActionSelected,
     this.onChoiceSelected,
     this.textScale = TextScaleSetting.normalScale,
@@ -355,6 +357,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.notifications_active),
             tooltip: '通知設定',
             onPressed: () => _openReminderSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.homeAchievementsButton,
+            icon: const Icon(Icons.emoji_events),
+            tooltip: '実績バッジ',
+            onPressed: widget.onOpenAchievements,
           ),
         ],
       ),

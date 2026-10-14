@@ -39,6 +39,7 @@ import 'package:election_game/domain/services/manifesto_service.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
 import 'package:election_game/features/lifetrend/presentation/life_param_trend_screen.dart';
+import 'package:election_game/features/achievements/presentation/achievement_badge_screen.dart';
 import 'package:election_game/domain/repositories/life_param_snapshot_repository.dart';
 import 'package:election_game/domain/services/life_param_trend_service.dart';
 import 'package:election_game/services/bgm_service.dart';
@@ -129,6 +130,22 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 選挙アーカイブから読み込んだ過去選挙（initState で repository.load() を反映）
   List<Election> _loadedPastElections = const [];
+
+  /// 実績バッジ画面を開く。
+  ///
+  /// 選挙の歩み（実施回数・到達スケール・完了済み選挙）を渡し、
+  /// クイズの自己ベストはリポジトリから読み込ませる。
+  void _openAchievements() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AchievementBadgeScreen(
+          electionCount: _gameState.electionCount,
+          scale: _gameState.scale,
+          pastElections: _loadedPastElections,
+        ),
+      ),
+    );
+  }
 
   /// 支持率シミュレーション画面を開く。
   ///
@@ -721,6 +738,7 @@ class _GameScreenState extends State<GameScreen> {
           onOpenGlossary: _openGlossary,
           onOpenManifesto: _openManifesto,
           onOpenLifeParamTrend: _openLifeParamTrend,
+          onOpenAchievements: _openAchievements,
           onActionSelected: _onActionSelected,
           onChoiceSelected: _onChoiceSelected,
           textScale: widget.textScale,
