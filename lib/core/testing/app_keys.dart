@@ -370,4 +370,17 @@ class AppKeys {
   static const shareCardImageShareButton =
       Key('election_share_card_image_share_button');
   static const shareCardEmpty = Key('election_share_card_empty');
+
+  // App lock（アプリロック・パスコード）
+  static const appLockGateScreen = Key('app_lock_gate_screen');
+  static const appLockGateField = Key('app_lock_gate_field');
+  static const appLockSettingsScreen = Key('app_lock_settings_screen');
+  static const appLockSettingsEntry = Key('app_lock_settings_entry');
+  static const appLockSettingsTitle = Key('app_lock_settings_title');
+  static const appLockPasscodeField = Key('app_lock_passcode_field');
+  static const appLockConfirmField = Key('app_lock_confirm_field');
+  static const appLockEnableButton = Key('app_lock_enable_button');
+  static const appLockDisableButton = Key('app_lock_disable_button');
+  static const appLockErrorLabel = Key('app_lock_error_label');
+  static const appLockEnabledLabel = Key('app_lock_enabled_label');
 }

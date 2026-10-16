@@ -12,6 +12,7 @@ import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
+import 'package:election_game/core/infrastructure/app_lock_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
@@ -141,6 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
           currentSettings: widget.soundSettings,
           onChanged: (settings) =>
               widget.onSoundSettingsChanged?.call(settings),
+        ),
+      ),
+    );
+  }
+
+  /// アプリロック設定画面を開く。
+  void _openAppLockSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => const AppLockSettingsScreen(
+          key: AppKeys.appLockSettingsScreen,
         ),
       ),
     );
@@ -333,6 +345,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.volume_up),
             tooltip: 'サウンド設定',
             onPressed: () => _openSoundSettings(context),
+          ),
+          IconButton(
+            key: AppKeys.appLockSettingsEntry,
+            icon: const Icon(Icons.lock_outline),
+            tooltip: 'アプリロック',
+            onPressed: () => _openAppLockSettings(context),
           ),
           IconButton(
             key: AppKeys.homeLifeParamTrendButton,

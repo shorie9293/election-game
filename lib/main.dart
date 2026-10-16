@@ -12,6 +12,7 @@ import 'package:election_game/core/theme/theme_mode_repository.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
+import 'package:election_game/core/infrastructure/app_lock_gate.dart';
 import 'package:election_game/screens/game_screen.dart';
 
 void main() {
@@ -143,13 +144,15 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
-      home: GameScreen(
-        textScale: _textScale,
-        onScaleChanged: _changeTextScale,
-        themeMode: _themeMode,
-        onThemeModeChanged: _changeThemeMode,
-        soundSettings: _soundSettings,
-        onSoundSettingsChanged: _changeSoundSettings,
+      home: AppLockGate(
+        unlockedBuilder: (context) => GameScreen(
+          textScale: _textScale,
+          onScaleChanged: _changeTextScale,
+          themeMode: _themeMode,
+          onThemeModeChanged: _changeThemeMode,
+          soundSettings: _soundSettings,
+          onSoundSettingsChanged: _changeSoundSettings,
+        ),
       ),
     );
   }
