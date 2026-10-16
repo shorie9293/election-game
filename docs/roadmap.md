@@ -1,9 +1,9 @@
 # 【election-game 道標】
 
 **制定**: 令和八年皐月十二日
-**更新**: 令和八年長月十四日（長月十四日 — #132 プレイヤー実績バッジ。選挙の歩みとクイズの学びから14種のバッジを算出し、獲得済み／未獲得の別に条件と進捗を一覧提示。全1321通過確認。v1.0.23+30）[イシコリ]
+**更新**: 令和八年長月十六日（長月十六日 — #138 選挙結果の画像シェアカード。当選者・得票率・得票差・規模・投票率・実施日を1枚のカードに描き、share_plus の共有シートでテキスト／画像共有。姉妹4現世との非対称を解消。全1351通過確認。v1.0.24+31）[イシコリ]
 **元神想書**: `shinsho/election-game-citizen-shinso.md`（351行）
-**試験**: 1321/1321通過 ✅
+**試験**: 1351/1351通過 ✅
 
 ---
 
@@ -23,6 +23,7 @@
 | Phase 4.6 | 候補者名鑑（#83・CandidateAlmanacService＋CandidateAlmanacScreen・検索/派閥絞込/並替/公約詳細） | ✅ 完了（565/565、+67試験） |
 | Phase 4.7 | サウンド設定（#88・SoundSettings/SoundSettingsRepository＋SoundSettingsScreen・BGM/効果音のON・OFFと音量の永続化と再生反映） | ✅ 完了（640/640、+75試験） |
 | Phase 4.8 | 間違い復習ノート（#130・QuizMistakeEntry/QuizMistakeService＋QuizMistakeNotebookScreen・誤答の永続記録/カテゴリ絞込/克服トラッキング/未克服のみの再挑戦） | ✅ 完了（1291/1291、+83試験） |
+| Phase 4.9 | 選挙結果の画像シェアカード（#138・ElectionShareCardData/ElectionShareCardService＋ElectionShareCardScreen・当選者/得票率/得票差/規模/投票率/実施日を1枚のカード化しテキスト/画像共有。capture/exporter は注入可能な抽象） | ✅ 完了（1351/1351、+30試験） |
 
 ---
 

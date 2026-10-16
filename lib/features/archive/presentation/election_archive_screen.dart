@@ -10,6 +10,9 @@ import 'package:election_game/domain/repositories/election_archive_repository.da
 import 'package:election_game/domain/services/election_archive_service.dart';
 import 'package:election_game/features/charts/presentation/election_chart_screen.dart';
 import 'package:election_game/features/recap/presentation/election_recap_screen.dart';
+import 'package:election_game/features/share/presentation/election_share_card_capture.dart';
+import 'package:election_game/features/share/presentation/election_share_card_exporter.dart';
+import 'package:election_game/features/share/presentation/election_share_card_screen.dart';
 
 /// 選挙アーカイブ（過去選挙の結果と政策影響の俯瞰）画面。
 ///
@@ -100,6 +103,24 @@ class _ElectionArchiveScreenState extends State<ElectionArchiveScreen> {
                     entries: _entries,
                     repository: widget.repository,
                     rawElections: widget.rawElections,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            key: AppKeys.archiveShareCardButton,
+            icon: const Icon(Icons.share),
+            tooltip: '画像シェアカード',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ElectionShareCardScreen(
+                    entries: _entries,
+                    repository: widget.repository,
+                    rawElections: widget.rawElections,
+                    capture: const RepaintBoundaryElectionShareCardCapture(),
+                    exporter: const SharePlusElectionShareCardExporter(),
                   ),
                 ),
               );

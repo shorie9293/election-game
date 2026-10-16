@@ -357,4 +357,17 @@ class AppKeys {
   static Key achievementBadgeRow(String id) => Key('achievement_badge_row_$id');
   static Key achievementBadgeProgress(String id) =>
       Key('achievement_badge_progress_$id');
+
+  // Election share card（選挙結果の画像シェアカード）
+  static const shareCardScreen = Key('election_share_card_screen');
+  static const archiveShareCardButton = Key('archive_share_card_button');
+  static const shareCardTitle = Key('election_share_card_title');
+  static const shareCardPreview = Key('election_share_card_preview');
+  static const shareCardHeadline = Key('election_share_card_headline');
+  static const shareCardSelector = Key('election_share_card_selector');
+  static const shareCardTextShareButton =
+      Key('election_share_card_text_share_button');
+  static const shareCardImageShareButton =
+      Key('election_share_card_image_share_button');
+  static const shareCardEmpty = Key('election_share_card_empty');
 }
