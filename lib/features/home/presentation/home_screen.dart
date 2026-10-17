@@ -8,7 +8,7 @@ import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/daily_event.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
-import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
+import 'package:election_game/features/quiz/presentation/quiz_difficulty_screen.dart';
 import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// 政策・制度クイズ画面へ遷移する
   void _openQuiz(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const QuizScreen()),
+      MaterialPageRoute<void>(builder: (_) => const QuizDifficultyScreen()),
     );
   }
 

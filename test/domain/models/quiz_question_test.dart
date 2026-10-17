@@ -11,6 +11,7 @@ void main() {
       List<String> choices = const ['2年', '4年', '6年'],
       int correctIndex = 1,
       String explanation = '衆議院議員の任期は4年です。',
+      QuizDifficulty difficulty = QuizDifficulty.intermediate,
     }) {
       return QuizQuestion(
         id: id,
@@ -19,6 +20,7 @@ void main() {
         choices: choices,
         correctIndex: correctIndex,
         explanation: explanation,
+        difficulty: difficulty,
       );
     }
 
@@ -81,9 +83,47 @@ void main() {
       expect(build(), isNot(build(id: 'q2')));
     });
 
+    test('difficulty の既定値は intermediate', () {
+      expect(build().difficulty, QuizDifficulty.intermediate);
+    });
+
+    test('difficulty を明示指定すると保持される', () {
+      expect(build(difficulty: QuizDifficulty.beginner).difficulty,
+          QuizDifficulty.beginner);
+      expect(build(difficulty: QuizDifficulty.advanced).difficulty,
+          QuizDifficulty.advanced);
+    });
+
+    test('copyWith で difficulty を差し替えられる', () {
+      final q = build(difficulty: QuizDifficulty.beginner);
+      final updated = q.copyWith(difficulty: QuizDifficulty.advanced);
+      expect(updated.difficulty, QuizDifficulty.advanced);
+      expect(q.difficulty, QuizDifficulty.beginner);
+      expect(updated.id, q.id);
+    });
+
+    test('difficulty が異なれば等しくない（props 等価性）', () {
+      expect(
+        build(difficulty: QuizDifficulty.beginner),
+        isNot(build(difficulty: QuizDifficulty.advanced)),
+      );
+      expect(
+        build(difficulty: QuizDifficulty.beginner),
+        build(difficulty: QuizDifficulty.beginner),
+      );
+    });
+
     test('choices は外部から変更できない（不変リスト）', () {
       final q = build();
       expect(() => q.choices.add('8年'), throwsUnsupportedError);
+    });
+  });
+
+  group('QuizDifficulty', () {
+    test('日本語ラベルを持つ', () {
+      expect(QuizDifficulty.beginner.label, '初級');
+      expect(QuizDifficulty.intermediate.label, '中級');
+      expect(QuizDifficulty.advanced.label, '上級');
     });
   });
 

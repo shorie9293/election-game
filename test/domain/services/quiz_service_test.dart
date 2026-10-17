@@ -136,4 +136,75 @@ void main() {
       );
     });
   });
+
+  group('QuizService.難易度機能', () {
+    test('defaultQuestions は各難易度4問以上を含む（合計16問以上）', () {
+      final questions = QuizService.defaultQuestions();
+      expect(questions.length, greaterThanOrEqualTo(16));
+      for (final difficulty in QuizDifficulty.values) {
+        final count = questions.where((q) => q.difficulty == difficulty).length;
+        expect(count, greaterThanOrEqualTo(4), reason: '$difficulty が4問未満');
+      }
+    });
+
+    test('questionsByDifficulty は該当のみ・宣言順保持・入力非破壊', () {
+      final questions = QuizService.defaultQuestions();
+      final snapshot = questions.map((q) => q.id).toList();
+      final advanced =
+          QuizService.questionsByDifficulty(questions, QuizDifficulty.advanced);
+      expect(advanced.every((q) => q.difficulty == QuizDifficulty.advanced),
+          isTrue);
+      final expectedIds = questions
+          .where((q) => q.difficulty == QuizDifficulty.advanced)
+          .map((q) => q.id)
+          .toList();
+      expect(advanced.map((q) => q.id).toList(), expectedIds);
+      expect(questions.map((q) => q.id).toList(), snapshot);
+    });
+
+    test('questionsFor(difficulty:) は該当難易度のみ返す', () {
+      final beginners =
+          QuizService.questionsFor(difficulty: QuizDifficulty.beginner);
+      expect(beginners, isNotEmpty);
+      expect(beginners.every((q) => q.difficulty == QuizDifficulty.beginner),
+          isTrue);
+      expect(
+        beginners.length,
+        QuizService.countByDifficulty(
+            QuizService.defaultQuestions(), QuizDifficulty.beginner),
+      );
+    });
+
+    test('questionsFor は category と difficulty の AND で絞り込む', () {
+      final result = QuizService.questionsFor(
+        category: QuizCategory.system,
+        difficulty: QuizDifficulty.advanced,
+      );
+      expect(result, isNotEmpty);
+      expect(
+        result.every((q) =>
+            q.category == QuizCategory.system &&
+            q.difficulty == QuizDifficulty.advanced),
+        isTrue,
+      );
+      expect(result.length, lessThan(QuizService.defaultQuestions().length));
+    });
+
+    test('countByDifficulty は該当件数を返す', () {
+      final questions = QuizService.defaultQuestions();
+      for (final difficulty in QuizDifficulty.values) {
+        expect(
+          QuizService.countByDifficulty(questions, difficulty),
+          questions.where((q) => q.difficulty == difficulty).length,
+        );
+      }
+      expect(
+        QuizService.countByDifficulty(questions, QuizDifficulty.intermediate),
+        questions.length -
+            questions
+                .where((q) => q.difficulty != QuizDifficulty.intermediate)
+                .length,
+      );
+    });
+  });
 }

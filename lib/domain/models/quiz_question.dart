@@ -11,6 +11,18 @@ enum QuizCategory {
   final String label;
 }
 
+/// クイズの難易度
+enum QuizDifficulty {
+  beginner('初級'),
+  intermediate('中級'),
+  advanced('上級');
+
+  const QuizDifficulty(this.label);
+
+  /// 日本語ラベル
+  final String label;
+}
+
 /// 政策・制度クイズの1問を表す不変モデル。
 ///
 /// 不変条件:
@@ -36,6 +48,9 @@ class QuizQuestion extends Equatable {
   /// 解説文
   final String explanation;
 
+  /// 難易度
+  final QuizDifficulty difficulty;
+
   const QuizQuestion._({
     required this.id,
     required this.category,
@@ -43,6 +58,7 @@ class QuizQuestion extends Equatable {
     required this.choices,
     required this.correctIndex,
     required this.explanation,
+    required this.difficulty,
   });
 
   /// 検証付きファクトリ。不変条件に反する場合は [ArgumentError] を投げる。
@@ -53,6 +69,7 @@ class QuizQuestion extends Equatable {
     required List<String> choices,
     required int correctIndex,
     required String explanation,
+    QuizDifficulty difficulty = QuizDifficulty.intermediate,
   }) {
     if (id.trim().isEmpty) {
       throw ArgumentError.value(id, 'id', '問題IDは空にできません');
@@ -80,6 +97,7 @@ class QuizQuestion extends Equatable {
       choices: List.unmodifiable(choices),
       correctIndex: correctIndex,
       explanation: explanation,
+      difficulty: difficulty,
     );
   }
 
@@ -90,6 +108,7 @@ class QuizQuestion extends Equatable {
     List<String>? choices,
     int? correctIndex,
     String? explanation,
+    QuizDifficulty? difficulty,
   }) {
     return QuizQuestion(
       id: id ?? this.id,
@@ -98,6 +117,7 @@ class QuizQuestion extends Equatable {
       choices: choices ?? this.choices,
       correctIndex: correctIndex ?? this.correctIndex,
       explanation: explanation ?? this.explanation,
+      difficulty: difficulty ?? this.difficulty,
     );
   }
 
@@ -106,5 +126,5 @@ class QuizQuestion extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, category, question, choices, correctIndex, explanation];
+      [id, category, question, choices, correctIndex, explanation, difficulty];
 }

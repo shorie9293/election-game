@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/domain/models/quiz_question.dart';
 import 'package:election_game/domain/repositories/quiz_repository.dart';
+import 'package:election_game/domain/services/quiz_service.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 
 void main() {
@@ -213,6 +214,61 @@ void main() {
       // リポジトリには挑戦回数が記録される
       final attempts = await const QuizRepository().loadAttempts();
       expect(attempts, 4);
+    });
+  });
+
+  group('QuizScreen 難易度別出題', () {
+    testWidgets('difficulty: beginner で該当難易度のみ出題される', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: QuizScreen(difficulty: QuizDifficulty.beginner),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 進捗の分母はサービス集計の初級件数と一致する（独自集計していない証拠）
+      final beginnerCount = QuizService.countByDifficulty(
+        QuizService.defaultQuestions(),
+        QuizDifficulty.beginner,
+      );
+      expect(find.text('問 1 / $beginnerCount'), findsOneWidget);
+
+      // 難易度バッジに「初級」が表示される
+      expect(find.byKey(AppKeys.quizDifficultyBadge), findsOneWidget);
+      expect(find.text('初級'), findsOneWidget);
+    });
+
+    testWidgets('結果画面に難易度名が1行表示される', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: QuizScreen(difficulty: QuizDifficulty.beginner),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 全問回答して結果画面まで進む（選択肢は常に最初を選ぶ）
+      final beginnerCount = QuizService.countByDifficulty(
+        QuizService.defaultQuestions(),
+        QuizDifficulty.beginner,
+      );
+      for (var i = 0; i < beginnerCount; i++) {
+        await tester.tap(find.byKey(AppKeys.quizChoice(0)));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(AppKeys.quizNextButton));
+        await tester.pumpAndSettle();
+      }
+
+      expect(find.byKey(AppKeys.quizResultView), findsOneWidget);
+      expect(find.byKey(AppKeys.quizResultDifficulty), findsOneWidget);
+      expect(find.text('難易度: 初級'), findsOneWidget);
+    });
+
+    testWidgets('difficulty 未指定＋questions 指定の既存挙動は不変', (tester) async {
+      await pumpQuiz(tester);
+
+      expect(find.text('問 1 / 2'), findsOneWidget);
+      expect(find.byKey(AppKeys.quizDifficultyBadge), findsNothing);
+      expect(find.text('初級'), findsNothing);
     });
   });
 }

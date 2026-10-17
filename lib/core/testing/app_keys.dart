@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:election_game/domain/models/election_scale.dart';
+import 'package:election_game/domain/models/quiz_question.dart';
 
 /// 全画面・全Widgetの試験用Keyを一元管理。
 /// 重複禁止。命名規則: <画面名>_<要素名>
@@ -383,4 +384,12 @@ class AppKeys {
   static const appLockDisableButton = Key('app_lock_disable_button');
   static const appLockErrorLabel = Key('app_lock_error_label');
   static const appLockEnabledLabel = Key('app_lock_enabled_label');
+
+  // Quiz difficulty selection（クイズ難易度選択）
+  static const quizDifficultyScreen = Key('quiz_difficulty_screen');
+  static Key quizDifficultyOption(QuizDifficulty d) =>
+      Key('quiz_difficulty_option_${d.name}');
+  static const quizDifficultyAll = Key('quiz_difficulty_all');
+  static const quizDifficultyBadge = Key('quiz_difficulty_badge');
+  static const quizResultDifficulty = Key('quiz_result_difficulty');
 }

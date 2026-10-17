@@ -25,11 +25,15 @@ class QuizScreen extends StatefulWidget {
   /// 出題する問題（未指定なら標準問題バンク）
   final List<QuizQuestion>? questions;
 
+  /// 出題する難易度（questions 未指定時にのみ有効。null なら全問）
+  final QuizDifficulty? difficulty;
+
   const QuizScreen({
     super.key,
     this.repository = const QuizRepository(),
     this.mistakeRepository = const SharedPreferencesQuizMistakeRepository(),
     this.questions,
+    this.difficulty,
   });
 
   @override
@@ -54,7 +58,8 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _resetSession() {
-    _questions = widget.questions ?? QuizService.defaultQuestions();
+    _questions = widget.questions ??
+        QuizService.questionsFor(difficulty: widget.difficulty);
     _answers = List<int?>.filled(_questions.length, null);
     _index = 0;
     _answered = false;
@@ -167,11 +172,35 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
                 child: Text(
                   q.category.label,
-                  style: const TextStyle(color: RetroPalette.gold, fontSize: 12),
+                  style:
+                      const TextStyle(color: RetroPalette.gold, fontSize: 12),
                 ),
               ),
             ],
           ),
+          if (widget.difficulty != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                key: AppKeys.quizDifficultyBadge,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: RetroPalette.panelBg,
+                  border: Border.all(color: RetroPalette.panelBorder),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  widget.difficulty!.label,
+                  style: const TextStyle(
+                    color: RetroPalette.textAccent,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
@@ -266,6 +295,18 @@ class _QuizScreenState extends State<QuizScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (widget.difficulty != null) ...[
+            Text(
+              '難易度: ${widget.difficulty!.label}',
+              key: AppKeys.quizResultDifficulty,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: RetroPalette.textAccent,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
