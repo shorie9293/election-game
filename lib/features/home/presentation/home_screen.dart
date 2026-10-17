@@ -12,6 +12,8 @@ import 'package:election_game/features/quiz/presentation/quiz_difficulty_screen.
 import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
+import 'package:election_game/features/about/presentation/about_app_keys.dart';
+import 'package:election_game/features/about/presentation/about_screen.dart';
 import 'package:election_game/core/infrastructure/app_lock_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
@@ -381,6 +383,18 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.emoji_events),
             tooltip: '実績バッジ',
             onPressed: widget.onOpenAchievements,
+          ),
+          IconButton(
+            key: AboutAppKeys.homeAboutButton,
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'アプリについて',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AboutScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
