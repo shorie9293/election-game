@@ -18,8 +18,6 @@ import 'package:election_game/core/infrastructure/app_lock_settings_screen.dart'
 import 'package:election_game/features/settings/presentation/theme_mode_settings_screen.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/theme/reduce_motion_setting.dart';
-import 'package:election_game/core/theme/reduce_motion_repository.dart';
-import 'package:election_game/features/settings/presentation/reduce_motion_settings_screen.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/heatmap/presentation/play_activity_heatmap_screen.dart';
@@ -138,20 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
           key: AppKeys.themeModeScreen,
           currentMode: widget.themeMode,
           onModeChanged: (mode) => widget.onThemeModeChanged?.call(mode),
-        ),
-      ),
-    );
-  }
-
-  /// 動きを減らす設定画面を開く。
-  void _openReduceMotionSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => ReduceMotionSettingsScreen(
-          key: AppKeys.reduceMotionScreen,
-          repository: const SharedPreferencesReduceMotionRepository(),
-          initial: widget.reduceMotion,
-          onChanged: (setting) => widget.onReduceMotionChanged?.call(setting),
+          reduceMotion: widget.reduceMotion,
+          onReduceMotionChanged: widget.onReduceMotionChanged,
         ),
       ),
     );
@@ -362,12 +348,6 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.brightness_6),
             tooltip: 'テーマ設定',
             onPressed: () => _openThemeModeSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.reduceMotionEntry,
-            icon: const Icon(Icons.motion_photos_off_outlined),
-            tooltip: '動きを減らす',
-            onPressed: () => _openReduceMotionSettings(context),
           ),
           IconButton(
             key: AppKeys.soundSettingsEntry,
