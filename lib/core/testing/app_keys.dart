@@ -169,6 +169,10 @@ class AppKeys {
   static Key themeModeOption(String storageKey) =>
       Key('theme_mode_option_$storageKey');
 
+  // Reduce motion（動きを減らす）
+  static const reduceMotionScreen = Key('reduce_motion_screen');
+  static const reduceMotionEntry = Key('reduce_motion_entry');
+
   // Turnout（投票率）
   static const turnoutScreen = Key('turnout_screen');
   static const turnoutTitle = Key('turnout_title');

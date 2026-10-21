@@ -10,6 +10,8 @@ import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/theme/theme_mode_repository.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
+import 'package:election_game/core/theme/reduce_motion_repository.dart';
+import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
@@ -73,6 +75,9 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
   final ThemeModeRepository _themeRepo = const ThemeModeRepository();
   SoundSettings _soundSettings = SoundSettings.defaults;
   final SoundSettingsRepository _soundRepo = const SoundSettingsRepository();
+  ReduceMotionSetting _reduceMotion = ReduceMotionSetting.system;
+  final ReduceMotionRepository _reduceMotionRepo =
+      const SharedPreferencesReduceMotionRepository();
 
   @override
   void initState() {
@@ -80,6 +85,23 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
     _loadTextScale();
     _loadThemeMode();
     _loadSoundSettings();
+    _loadReduceMotion();
+  }
+
+  /// 保存された動きの削減設定を読み込む（未保存/不正値は system）。
+  Future<void> _loadReduceMotion() async {
+    final saved = await _reduceMotionRepo.load();
+    if (mounted) {
+      setState(() => _reduceMotion = saved ?? ReduceMotionSetting.system);
+    }
+  }
+
+  /// 動きの削減設定を変更し、永続化する。
+  Future<void> _changeReduceMotion(ReduceMotionSetting setting) async {
+    await _reduceMotionRepo.save(setting);
+    if (mounted) {
+      setState(() => _reduceMotion = setting);
+    }
   }
 
   /// 保存されたサウンド設定を読み込む（未保存/不正値は既定値）。
@@ -139,8 +161,11 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
       themeMode: _themeMode.toThemeMode(),
       debugShowCheckedModeBanner: false,
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(_textScale),
+        data: applyReduceMotion(
+          MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(_textScale),
+          ),
+          _reduceMotion,
         ),
         child: child ?? const SizedBox.shrink(),
       ),
@@ -152,6 +177,8 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
           onThemeModeChanged: _changeThemeMode,
           soundSettings: _soundSettings,
           onSoundSettingsChanged: _changeSoundSettings,
+          reduceMotion: _reduceMotion,
+          onReduceMotionChanged: _changeReduceMotion,
         ),
       ),
     );

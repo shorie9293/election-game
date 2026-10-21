@@ -25,6 +25,8 @@ import 'package:election_game/features/home/presentation/home_screen.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
+import 'package:election_game/core/theme/reduce_motion_setting.dart';
+import 'package:election_game/core/haptics.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/domain/services/concern_evolution_service.dart';
 import 'package:election_game/domain/models/concern_evolution.dart';
@@ -80,6 +82,12 @@ class GameScreen extends StatefulWidget {
   /// サウンド設定変更時のコールバック（main で永続化される）
   final ValueChanged<SoundSettings>? onSoundSettingsChanged;
 
+  /// アプリ全体の動きの削減設定（main で読み込み・永続化）
+  final ReduceMotionSetting reduceMotion;
+
+  /// 動きの削減設定変更時のコールバック（main で永続化される）
+  final ValueChanged<ReduceMotionSetting>? onReduceMotionChanged;
+
   /// 注入可能な BGM サービス（試練では MockBgmService に差し替え可能）
   final BgmService? bgmService;
 
@@ -98,6 +106,8 @@ class GameScreen extends StatefulWidget {
     this.onThemeModeChanged,
     this.soundSettings = SoundSettings.defaults,
     this.onSoundSettingsChanged,
+    this.reduceMotion = ReduceMotionSetting.system,
+    this.onReduceMotionChanged,
     this.bgmService,
     this.sfxService,
   });
@@ -504,6 +514,7 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 投票実行 → resultへ
   void _onVoteCast(String candidateId) {
+    hapticTap();
     if (widget.soundSettings.sfxEnabled) {
       _sfxService.playVote();
     }
@@ -538,6 +549,7 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 棄権 → resultへ
   void _onAbstain() {
+    hapticTap();
     if (widget.soundSettings.sfxEnabled) {
       _sfxService.playAbstain();
     }
@@ -747,6 +759,8 @@ class _GameScreenState extends State<GameScreen> {
           onThemeModeChanged: widget.onThemeModeChanged,
           soundSettings: widget.soundSettings,
           onSoundSettingsChanged: widget.onSoundSettingsChanged,
+          reduceMotion: widget.reduceMotion,
+          onReduceMotionChanged: widget.onReduceMotionChanged,
         );
       case GamePhase.electionAnnouncement:
         return ElectionAnnouncementScreen(
