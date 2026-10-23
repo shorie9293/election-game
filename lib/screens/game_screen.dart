@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:election_game/domain/models/citizen.dart';
 import 'package:election_game/domain/models/citizen_enums.dart';
@@ -43,7 +45,10 @@ import 'package:election_game/features/manifesto/presentation/manifesto_tracker_
 import 'package:election_game/features/lifetrend/presentation/life_param_trend_screen.dart';
 import 'package:election_game/features/achievements/presentation/achievement_badge_screen.dart';
 import 'package:election_game/domain/repositories/life_param_snapshot_repository.dart';
+import 'package:election_game/domain/repositories/support_timeline_repository.dart';
 import 'package:election_game/domain/services/life_param_trend_service.dart';
+import 'package:election_game/domain/services/support_simulation_service.dart';
+import 'package:election_game/domain/services/support_timeline_service.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
 import 'package:election_game/services/sfx_service.dart';
@@ -63,6 +68,9 @@ class GameScreen extends StatefulWidget {
 
   /// 生活パラメータ推移の永続化先リポジトリ（試練では差し替え可能）
   final LifeParamSnapshotRepository lifeParamSnapshotRepository;
+
+  /// 世論（支持率）推移の永続化先リポジトリ（試練では差し替え可能）
+  final SupportTimelineRepository supportTimelineRepository;
 
   /// アプリ全体の文字サイズ倍率（main で読み込み・永続化）
   final double textScale;
@@ -100,6 +108,8 @@ class GameScreen extends StatefulWidget {
     this.manifestoRepository = const SharedPreferencesManifestoRepository(),
     this.lifeParamSnapshotRepository =
         const SharedPreferencesLifeParamSnapshotRepository(),
+    this.supportTimelineRepository =
+        const SharedPreferencesSupportTimelineRepository(),
     this.textScale = TextScaleSetting.normalScale,
     this.onScaleChanged,
     this.themeMode = ThemeModeSetting.system,
@@ -173,6 +183,7 @@ class _GameScreenState extends State<GameScreen> {
               : null,
           electionTitle: _gameState.currentElection?.title,
           player: _gameState.citizen,
+          timelineRepository: widget.supportTimelineRepository,
         ),
       ),
     );
@@ -510,6 +521,21 @@ class _GameScreenState extends State<GameScreen> {
     }.toList();
     _loadedPastElections = past;
     _gameState = _gameState.copyWith(pastElections: past);
+    _recordSupportTimeline();
+  }
+
+  /// 選挙確定時点の世論をタイムラインへ投げっぱなしで記録する。
+  ///
+  /// 失敗しても選挙進行を止めない（例外は握り潰す）。
+  void _recordSupportTimeline() {
+    final entry = SupportTimelineService.buildEntry(
+      simulation: SupportSimulationService.forGameState(_gameState),
+      now: DateTime.now(),
+    );
+    if (entry == null) return;
+    unawaited(
+      widget.supportTimelineRepository.add(entry).catchError((Object _) {}),
+    );
   }
 
   /// 投票実行 → resultへ

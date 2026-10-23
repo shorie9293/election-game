@@ -8,7 +8,9 @@ import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/society_state.dart';
 import 'package:election_game/domain/models/support_snapshot.dart';
+import 'package:election_game/domain/repositories/support_timeline_repository.dart';
 import 'package:election_game/domain/services/support_simulation_service.dart';
+import 'package:election_game/features/support/presentation/support_timeline_section.dart';
 
 /// 支持率シミュレーション画面。
 ///
@@ -33,6 +35,12 @@ class SupportSimulationScreen extends StatefulWidget {
   /// 有権者の上書き（未指定ならデフォルトの有権者10人）
   final List<Citizen>? votersOverride;
 
+  /// 世論の推移の永続化先（未指定なら推移セクションを描画しない）
+  final SupportTimelineRepository? timelineRepository;
+
+  /// 現在時刻の供給元（試練での固定用）
+  final DateTime Function()? now;
+
   const SupportSimulationScreen({
     super.key,
     required this.candidates,
@@ -41,6 +49,8 @@ class SupportSimulationScreen extends StatefulWidget {
     this.player,
     this.electionTitle,
     this.votersOverride,
+    this.timelineRepository,
+    this.now,
   });
 
   @override
@@ -130,6 +140,15 @@ class _SupportSimulationScreenState extends State<SupportSimulationScreen> {
                   fontSize: 12,
                 ),
               ),
+              // 世論の推移（リポジトリ注入時のみ）
+              if (widget.timelineRepository != null) ...[
+                const SizedBox(height: 16),
+                SupportTimelineSection(
+                  repository: widget.timelineRepository!,
+                  simulation: simulation,
+                  now: widget.now,
+                ),
+              ],
             ],
           ),
         ),

@@ -396,4 +396,15 @@ class AppKeys {
   static const quizDifficultyAll = Key('quiz_difficulty_all');
   static const quizDifficultyBadge = Key('quiz_difficulty_badge');
   static const quizResultDifficulty = Key('quiz_result_difficulty');
+
+  // Support timeline（世論の推移）
+  static const supportTimelineTitle = Key('support_timeline_title');
+  static const supportTimelineTrendLabel = Key('support_timeline_trend_label');
+  static const supportTimelineCount = Key('support_timeline_count');
+  static const supportTimelineRecordButton =
+      Key('support_timeline_record_button');
+  static const supportTimelineEmpty = Key('support_timeline_empty');
+  static Key supportTimelineRow(String id) => Key('support_timeline_row_$id');
+  static Key supportTimelineLeaderChanged(String id) =>
+      Key('support_timeline_leader_changed_$id');
 }
