@@ -49,6 +49,9 @@ import 'package:election_game/domain/repositories/support_timeline_repository.da
 import 'package:election_game/domain/services/life_param_trend_service.dart';
 import 'package:election_game/domain/services/support_simulation_service.dart';
 import 'package:election_game/domain/services/support_timeline_service.dart';
+import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
+import 'package:election_game/features/crossapp/data/election_reward_event_exporter.dart';
+import 'package:election_game/features/crossapp/domain/election_reward_event.dart';
 import 'package:election_game/services/bgm_service.dart';
 import 'package:election_game/services/audio_players_bgm_service.dart';
 import 'package:election_game/services/sfx_service.dart';
@@ -102,6 +105,12 @@ class GameScreen extends StatefulWidget {
   /// 注入可能な効果音サービス（試練では MockSfxService に差し替え可能）
   final SfxService? sfxService;
 
+  /// クロスアプリ報酬イベントの書き出し先（未指定なら既定の共有ストレージ）
+  final IElectionRewardEventExporter? rewardEventExporter;
+
+  /// クロスアプリ連携コードの読み込み元（user_id 解決に使う）
+  final CrossAppLinkCodeRepository linkCodeRepository;
+
   const GameScreen({
     super.key,
     this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
@@ -120,6 +129,9 @@ class GameScreen extends StatefulWidget {
     this.onReduceMotionChanged,
     this.bgmService,
     this.sfxService,
+    this.rewardEventExporter,
+    this.linkCodeRepository =
+        const SharedPreferencesCrossAppLinkCodeRepository(),
   });
 
   @override
@@ -143,13 +155,34 @@ class _GameScreenState extends State<GameScreen> {
   bool _participatedInDebate = false;
 
   /// BGM再生サービス。本番環境では AudioPlayersBgmService 等に差し替え可能。
-  late final BgmService _bgmService = widget.bgmService ?? AudioPlayersBgmService();
+  late final BgmService _bgmService =
+      widget.bgmService ?? AudioPlayersBgmService();
 
   /// 効果音サービス。本番環境では SystemSoundSfxService を既定とする。
-  late final SfxService _sfxService = widget.sfxService ?? const SystemSoundSfxService();
+  late final SfxService _sfxService =
+      widget.sfxService ?? const SystemSoundSfxService();
 
   /// 選挙アーカイブから読み込んだ過去選挙（initState で repository.load() を反映）
   List<Election> _loadedPastElections = const [];
+
+  /// クロスアプリ報酬イベントの書き出し先（本番は共有ストレージ）
+  late final IElectionRewardEventExporter _rewardExporter =
+      widget.rewardEventExporter ?? FileElectionRewardEventExporter();
+
+  /// 連携コードの解決（初回の書き出し時に一度だけ実行）。
+  /// 失敗しても空文字のまま＝書き出し抑止で本編は続行する。
+  late final Future<void> _linkBinding = _bindLinkCode();
+
+  Future<void> _bindLinkCode() async {
+    // 明示注入された user_id は尊重し、未設定のときだけ連携コードから解決する
+    if (_rewardExporter.userId.trim().isNotEmpty) return;
+    try {
+      final resolved = await resolveExportUserId(widget.linkCodeRepository);
+      if (resolved.isNotEmpty) _rewardExporter.userId = resolved;
+    } catch (_) {
+      // 連携コードが読めない場合は書き出さない（best-effort）
+    }
+  }
 
   /// 実績バッジ画面を開く。
   ///
@@ -242,9 +275,8 @@ class _GameScreenState extends State<GameScreen> {
           electionTitle: current?.title ?? '次回の選挙',
           candidates: current?.candidates ??
               ElectionService.determineCandidates(_gameState.society),
-          completedElection: (current != null && current.completed)
-              ? current
-              : null,
+          completedElection:
+              (current != null && current.completed) ? current : null,
         ),
       ),
     );
@@ -359,9 +391,8 @@ class _GameScreenState extends State<GameScreen> {
   /// キャラクター作成完了 → homeへ
   void _onCitizenCreated(Citizen citizen) {
     // 初期関心事を ConcernEvolution として記録
-    final initialEvolutions = citizen.concerns
-        .map((c) => ConcernEvolution.initial(c))
-        .toList();
+    final initialEvolutions =
+        citizen.concerns.map((c) => ConcernEvolution.initial(c)).toList();
     setState(() {
       _gameState = _gameState.copyWith(
         citizen: citizen,
@@ -391,15 +422,12 @@ class _GameScreenState extends State<GameScreen> {
       final newLifeParams =
           Map<String, int>.from(_gameState.citizen.lifeParams);
       for (final entry in event.effects!.entries) {
-        final key = entry.key == 'happiness'
-            ? entry.key
-            : entry.key;
+        final key = entry.key == 'happiness' ? entry.key : entry.key;
         if (key == 'happiness') {
           // happinessはSocietyStateのものなのでここでは飛ばす
           continue;
         }
-        newLifeParams[key] =
-            (newLifeParams[key] ?? 50) + entry.value;
+        newLifeParams[key] = (newLifeParams[key] ?? 50) + entry.value;
       }
       updatedCitizen = _gameState.citizen.copyWith(lifeParams: newLifeParams);
     }
@@ -415,8 +443,7 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 選択肢イベントの選択結果を反映
   void _onChoiceSelected(DailyEvent event, EventChoice choice) {
-    final newLifeParams =
-        Map<String, int>.from(_gameState.citizen.lifeParams);
+    final newLifeParams = Map<String, int>.from(_gameState.citizen.lifeParams);
     if (choice.effects != null) {
       for (final entry in choice.effects!.entries) {
         final key = entry.key;
@@ -424,8 +451,7 @@ class _GameScreenState extends State<GameScreen> {
           // happinessはSocietyState側
           continue;
         }
-        newLifeParams[key] =
-            (newLifeParams[key] ?? 50) + entry.value;
+        newLifeParams[key] = (newLifeParams[key] ?? 50) + entry.value;
       }
     }
     // event自身のeffectsもあれば適用（選択肢に加えて）
@@ -433,8 +459,7 @@ class _GameScreenState extends State<GameScreen> {
       for (final entry in event.effects!.entries) {
         final key = entry.key;
         if (key == 'happiness') continue;
-        newLifeParams[key] =
-            (newLifeParams[key] ?? 50) + entry.value;
+        newLifeParams[key] = (newLifeParams[key] ?? 50) + entry.value;
       }
     }
 
@@ -463,7 +488,8 @@ class _GameScreenState extends State<GameScreen> {
 
   /// 町広場画面を表示
   void _showTownSquare() {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (_) => TownSquareScreen(
           npcs: OppositionCitizen.samples(),
@@ -472,7 +498,8 @@ class _GameScreenState extends State<GameScreen> {
           onNpcInteract: _onNpcInteract,
         ),
       ),
-    ).then((_) {
+    )
+        .then((_) {
       // 町広場から戻ったらターンを消費
       setState(() {
         _gameState = _gameState.copyWith(
@@ -510,8 +537,9 @@ class _GameScreenState extends State<GameScreen> {
   /// 確定した選挙結果を過去選挙に記録する。
   ///
   /// GameState.pastElections に追記し、選挙アーカイブリポジトリにも保存する。
-  void _recordElectionResult(Election result) {
-    if (!result.completed) return;
+  /// 更新後の過去選挙リストを返す（累計当選回数の算出に使う）。
+  List<Election> _recordElectionResult(Election result) {
+    if (!result.completed) return _gameState.pastElections;
     // アーカイブ重複追加は同一IDでリポジトリ側が防止する
     widget.archiveRepository.add(result);
     final past = <Election>{
@@ -522,6 +550,33 @@ class _GameScreenState extends State<GameScreen> {
     _loadedPastElections = past;
     _gameState = _gameState.copyWith(pastElections: past);
     _recordSupportTimeline();
+    return past;
+  }
+
+  /// 選挙確定をクロスアプリ報酬イベントとして書き出す（学びの循環）。
+  ///
+  /// 累計当選回数は pastElections（今回を含む）から数える。
+  /// 書き出し失敗は明確に握りつぶす（best-effort・選挙進行を止めない）。
+  Future<void> _exportElectionReward(
+    Election result,
+    List<Election> past,
+  ) async {
+    try {
+      await _linkBinding;
+      final wins = past
+          .where((e) => e.winnerId != null && e.winnerId == e.voterId)
+          .length;
+      final won = result.winnerId != null && result.winnerId == result.voterId;
+      await _rewardExporter.exportElectionCompleted(
+        wins: wins,
+        won: won,
+        voteShare: voteSharePercent(result.voteCounts, result.winnerId),
+        scale: result.scale.displayName,
+        electionId: result.id,
+      );
+    } catch (_) {
+      // 書き出し失敗は握りつぶす
+    }
   }
 
   /// 選挙確定時点の世論をタイムラインへ投げっぱなしで記録する。
@@ -539,15 +594,14 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   /// 投票実行 → resultへ
-  void _onVoteCast(String candidateId) {
+  Future<void> _onVoteCast(String candidateId) async {
     hapticTap();
     if (widget.soundSettings.sfxEnabled) {
       _sfxService.playVote();
     }
     _votedCandidateId = candidateId;
     _abstained = false;
-    final election =
-        _gameState.currentElection!.copyWith(voterId: candidateId);
+    final election = _gameState.currentElection!.copyWith(voterId: candidateId);
     final result = ElectionService.computeElectionResult(election);
 
     final newLifeParams = ElectionService.applyElectionToLife(
@@ -566,15 +620,16 @@ class _GameScreenState extends State<GameScreen> {
           .add(manifestoRecord.copyWith(occurredAt: DateTime.now()));
     }
 
+    final past = _recordElectionResult(result);
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
-      _recordElectionResult(result);
       _currentPhase = GamePhase.result;
     });
+    await _exportElectionReward(result, past);
   }
 
   /// 棄権 → resultへ
-  void _onAbstain() {
+  Future<void> _onAbstain() async {
     hapticTap();
     if (widget.soundSettings.sfxEnabled) {
       _sfxService.playAbstain();
@@ -600,11 +655,12 @@ class _GameScreenState extends State<GameScreen> {
           .add(manifestoRecord.copyWith(occurredAt: DateTime.now()));
     }
 
+    final past = _recordElectionResult(result);
     setState(() {
       _gameState = _gameState.copyWith(currentElection: result);
-      _recordElectionResult(result);
       _currentPhase = GamePhase.result;
     });
+    await _exportElectionReward(result, past);
   }
 
   /// 街に戻る（選挙結果を反映） → home または ending
@@ -661,7 +717,8 @@ class _GameScreenState extends State<GameScreen> {
 
     // エンディング判定: cityの3回目の選挙後
     // currentScale == city かつ shouldAdvanceScale で終了
-    final isFinalEnding = currentScale == ElectionScale.city && shouldAdvanceScale;
+    final isFinalEnding =
+        currentScale == ElectionScale.city && shouldAdvanceScale;
 
     // 懸念進化: 選挙結果と討論参加に基づき、新たな関心事を獲得
     final newEvolutions = ConcernEvolutionService.computeConcernEvolutions(
@@ -691,13 +748,10 @@ class _GameScreenState extends State<GameScreen> {
       _gameState = GameState(
         citizen: citizenWithNewConcerns,
         society: updatedSociety,
-        remainingTurns: isFinalEnding
-            ? 0
-            : ElectionService.computeNextElectionTurns(),
+        remainingTurns:
+            isFinalEnding ? 0 : ElectionService.computeNextElectionTurns(),
         electionCount: newElectionCount,
-        scale: shouldAdvanceScale && hasNextScale
-            ? nextScale
-            : currentScale,
+        scale: shouldAdvanceScale && hasNextScale ? nextScale : currentScale,
         concernEvolutions: updatedEvolutions,
         npcRelationships: _gameState.npcRelationships,
         pastElections: _gameState.pastElections,
@@ -743,9 +797,9 @@ class _GameScreenState extends State<GameScreen> {
           onSkip: () {
             TutorialService.markCompleted();
             setState(() => _tutorialState = _tutorialState.copyWith(
-              isActive: false,
-              isSkipped: true,
-            ));
+                  isActive: false,
+                  isSkipped: true,
+                ));
           },
           child: body,
         );
@@ -846,11 +900,14 @@ class _EndingScreen extends StatelessWidget {
 
     String endingMessage;
     if (societyState.mood < 0.3) {
-      endingMessage = '$placeNameは健全な民主主義を取り戻し、\\n市民一人ひとりの声が届く$placeNameになりました。';
+      endingMessage =
+          '$placeNameは健全な民主主義を取り戻し、\\n市民一人ひとりの声が届く$placeNameになりました。';
     } else if (societyState.mood > 0.7) {
-      endingMessage = '$placeNameは強い指導者のもと、\\n秩序ある発展を遂げました。\\nしかし、市民の声は遠くなってしまいました。';
+      endingMessage =
+          '$placeNameは強い指導者のもと、\\n秩序ある発展を遂げました。\\nしかし、市民の声は遠くなってしまいました。';
     } else {
-      endingMessage = '$placeNameはバランスの取れた社会へと\\n歩みを進めています。\\nあなたの一票が$placeNameを変えました。';
+      endingMessage =
+          '$placeNameはバランスの取れた社会へと\\n歩みを進めています。\\nあなたの一票が$placeNameを変えました。';
     }
 
     String scaleMessage;
@@ -871,7 +928,8 @@ class _EndingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.emoji_events, size: 64, color: RetroPalette.gold),
+              const Icon(Icons.emoji_events,
+                  size: 64, color: RetroPalette.gold),
               const SizedBox(height: 24),
               const Text(
                 'エンディング',
@@ -991,31 +1049,31 @@ class _EndingConcernGrowth extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           ...acquired.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  e.concern.label,
-                  style: const TextStyle(
-                    color: RetroPalette.textNormal,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    e.reason,
-                    style: const TextStyle(
-                      color: RetroPalette.textAccent,
-                      fontSize: 13,
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      e.concern.label,
+                      style: const TextStyle(
+                        color: RetroPalette.textNormal,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        e.reason,
+                        style: const TextStyle(
+                          color: RetroPalette.textAccent,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
           const SizedBox(height: 10),
           Text(
             'あなたは ${acquired.length} つの新しい関心事を得ました。\nあなたの一票一票が視野を広げました。',

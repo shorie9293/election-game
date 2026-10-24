@@ -9,6 +9,8 @@ import 'package:election_game/domain/repositories/quiz_mistake_repository.dart';
 import 'package:election_game/domain/repositories/quiz_repository.dart';
 import 'package:election_game/domain/services/quiz_mistake_service.dart';
 import 'package:election_game/domain/services/quiz_service.dart';
+import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
+import 'package:election_game/features/crossapp/data/election_reward_event_exporter.dart';
 
 /// 政策・制度クイズ（理解度テスト）画面。
 ///
@@ -28,12 +30,21 @@ class QuizScreen extends StatefulWidget {
   /// 出題する難易度（questions 未指定時にのみ有効。null なら全問）
   final QuizDifficulty? difficulty;
 
+  /// クロスアプリ報酬イベントの書き出し先（未指定なら既定の共有ストレージ）
+  final IElectionRewardEventExporter? rewardEventExporter;
+
+  /// クロスアプリ連携コードの読み込み元（user_id 解決に使う）
+  final CrossAppLinkCodeRepository linkCodeRepository;
+
   const QuizScreen({
     super.key,
     this.repository = const QuizRepository(),
     this.mistakeRepository = const SharedPreferencesQuizMistakeRepository(),
     this.questions,
     this.difficulty,
+    this.rewardEventExporter,
+    this.linkCodeRepository =
+        const SharedPreferencesCrossAppLinkCodeRepository(),
   });
 
   @override
@@ -49,6 +60,25 @@ class _QuizScreenState extends State<QuizScreen> {
   QuizResult? _result;
   QuizBestScore? _best;
   bool _saving = false;
+
+  /// 報酬イベントの書き出し先（本番は共有ストレージ）
+  late final IElectionRewardEventExporter _rewardExporter =
+      widget.rewardEventExporter ?? FileElectionRewardEventExporter();
+
+  /// 連携コードの解決（初回の書き出し時に一度だけ実行）。
+  /// 失敗しても空文字のまま＝書き出し抑止で本編は続行する。
+  late final Future<void> _linkBinding = _bindLinkCode();
+
+  Future<void> _bindLinkCode() async {
+    // 明示注入された user_id は尊重し、未設定のときだけ連携コードから解決する
+    if (_rewardExporter.userId.trim().isNotEmpty) return;
+    try {
+      final resolved = await resolveExportUserId(widget.linkCodeRepository);
+      if (resolved.isNotEmpty) _rewardExporter.userId = resolved;
+    } catch (_) {
+      // 連携コードが読めない場合は書き出さない（best-effort）
+    }
+  }
 
   @override
   void initState() {
@@ -97,6 +127,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _saving = true;
     });
     await _recordMistakes(result);
+    await _exportQuizReward(result);
     final best = await widget.repository.saveResult(result);
     if (!mounted) return;
     setState(() {
@@ -120,6 +151,22 @@ class _QuizScreenState extends State<QuizScreen> {
       await widget.mistakeRepository.save(updated);
     } catch (_) {
       // 復習ノートの保存失敗はクイズの採点結果に影響させない
+    }
+  }
+
+  /// 採点確定をクロスアプリ報酬イベントとして書き出す（学びの循環）。
+  ///
+  /// 書き出し失敗はクイズの採点結果に影響させない（best-effort）。
+  Future<void> _exportQuizReward(QuizResult result) async {
+    try {
+      await _linkBinding;
+      await _rewardExporter.exportQuizCompleted(
+        correctCount: result.correctCount,
+        total: result.total,
+        passed: result.isPassed,
+      );
+    } catch (_) {
+      // 書き出し失敗は握りつぶす
     }
   }
 

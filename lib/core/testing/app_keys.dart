@@ -199,15 +199,20 @@ class AppKeys {
   // Political groups（政党の可視化）
   static const politicalGroupsScreen = Key('political_groups_screen');
   static const politicalGroupsTitle = Key('political_groups_title');
-  static const politicalGroupsSummaryCard = Key('political_groups_summary_card');
-  static const politicalGroupsSearchField = Key('political_groups_search_field');
-  static const politicalGroupsSearchClear = Key('political_groups_search_clear');
+  static const politicalGroupsSummaryCard =
+      Key('political_groups_summary_card');
+  static const politicalGroupsSearchField =
+      Key('political_groups_search_field');
+  static const politicalGroupsSearchClear =
+      Key('political_groups_search_clear');
   static const politicalGroupsSortButton = Key('political_groups_sort_button');
   static const politicalGroupsCountLabel = Key('political_groups_count_label');
   static const politicalGroupsList = Key('political_groups_list');
-  static const politicalGroupsSupportList = Key('political_groups_support_list');
+  static const politicalGroupsSupportList =
+      Key('political_groups_support_list');
   static const politicalGroupsEmptyState = Key('political_groups_empty_state');
-  static const politicalGroupsDetailDialog = Key('political_groups_detail_dialog');
+  static const politicalGroupsDetailDialog =
+      Key('political_groups_detail_dialog');
   static const politicalGroupsDetailCloseButton =
       Key('political_groups_detail_close_button');
   static const homePoliticalGroupsButton = Key('home_political_groups_button');
@@ -253,13 +258,11 @@ class AppKeys {
   static const glossarySortButton = Key('glossary_sort_button');
   static const glossaryListCount = Key('glossary_list_count');
   static const glossaryEmptyState = Key('glossary_empty_state');
-  static const glossaryCategoryFilterAll =
-      Key('glossary_category_filter_all');
+  static const glossaryCategoryFilterAll = Key('glossary_category_filter_all');
   static const homeGlossaryButton = Key('home_glossary_button');
   static Key glossaryCategoryChip(String label) =>
       Key('glossary_category_chip_$label');
-  static Key glossaryTermTile(String id) =>
-      Key('glossary_term_tile_$id');
+  static Key glossaryTermTile(String id) => Key('glossary_term_tile_$id');
 
   // Backup（データのエクスポート/バックアップ）
   static const backupScreen = Key('backup_screen');
@@ -269,7 +272,8 @@ class AppKeys {
   static const backupCopyButton = Key('backup_copy_button');
   static const backupImportField = Key('backup_import_field');
   static const backupRestoreButton = Key('backup_restore_button');
-  static const backupRestoreConfirmButton = Key('backup_restore_confirm_button');
+  static const backupRestoreConfirmButton =
+      Key('backup_restore_confirm_button');
   static const backupStatusLabel = Key('backup_status_label');
   static const backupErrorLabel = Key('backup_error_label');
   static const homeBackupButton = Key('home_backup_button');
@@ -324,8 +328,7 @@ class AppKeys {
   static const chartCompareHint = Key('chart_compare_hint');
   static Key chartPointChip(String electionId) =>
       Key('chart_point_chip_$electionId');
-  static Key chartPartyRow(String faction) =>
-      Key('chart_party_row_$faction');
+  static Key chartPartyRow(String faction) => Key('chart_party_row_$faction');
 
   // Play activity heatmap（選挙プレイの活動ヒートマップ）
   static const playHeatmapScreen = Key('play_heatmap_screen');
@@ -334,7 +337,8 @@ class AppKeys {
   static const playHeatmapSummary = Key('play_heatmap_summary');
   static const playHeatmapGrid = Key('play_heatmap_grid');
   static const playHeatmapLegend = Key('play_heatmap_legend');
-  static Key playHeatmapCell(String dateKey) => Key('play_heatmap_cell_$dateKey');
+  static Key playHeatmapCell(String dateKey) =>
+      Key('play_heatmap_cell_$dateKey');
 
   // Quiz mistake notebook（選挙クイズの間違い復習ノート）
   static const quizNotebookScreen = Key('quiz_notebook_screen');
@@ -342,7 +346,8 @@ class AppKeys {
   static const quizNotebookEmpty = Key('quiz_notebook_empty');
   static const quizNotebookSummary = Key('quiz_notebook_summary');
   static const quizNotebookList = Key('quiz_notebook_list');
-  static const quizNotebookMasteredSection = Key('quiz_notebook_mastered_section');
+  static const quizNotebookMasteredSection =
+      Key('quiz_notebook_mastered_section');
   static const quizNotebookRetryButton = Key('quiz_notebook_retry_button');
   static const quizNotebookClearButton = Key('quiz_notebook_clear_button');
   static const quizNotebookClearConfirmButton =
@@ -407,4 +412,14 @@ class AppKeys {
   static Key supportTimelineRow(String id) => Key('support_timeline_row_$id');
   static Key supportTimelineLeaderChanged(String id) =>
       Key('support_timeline_leader_changed_$id');
+
+  // Cross-app link（クロスアプリ連携・学びの循環）
+  static const homeCrossAppLinkCard = Key('home_crossapp_link_card');
+  static const homeCrossAppLinkButton = Key('home_crossapp_link_button');
+  static const crossAppLinkTitle = Key('crossapp_link_title');
+  static const crossAppLinkStatus = Key('crossapp_link_status');
+  static const crossAppLinkCodeInput = Key('crossapp_link_code_input');
+  static const crossAppLinkSaveButton = Key('crossapp_link_save_button');
+  static const crossAppLinkClearButton = Key('crossapp_link_clear_button');
+  static const crossAppLinkError = Key('crossapp_link_error');
 }

@@ -26,6 +26,9 @@ import 'package:election_game/domain/repositories/election_archive_repository.da
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
+import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
+import 'package:election_game/features/crossapp/domain/election_reward_event.dart';
+import 'package:election_game/features/crossapp/presentation/crossapp_link_settings_screen.dart';
 
 /// メイン画面（生活パラメータ＋行動選択＋デイリーイベント）
 class HomeScreen extends StatefulWidget {
@@ -55,6 +58,9 @@ class HomeScreen extends StatefulWidget {
   final ReduceMotionSetting reduceMotion;
   final ValueChanged<ReduceMotionSetting>? onReduceMotionChanged;
 
+  /// クロスアプリ連携コードの読み込み元（学びの循環）
+  final CrossAppLinkCodeRepository crossAppLinkRepository;
+
   const HomeScreen({
     super.key,
     required this.citizen,
@@ -82,6 +88,8 @@ class HomeScreen extends StatefulWidget {
     this.onSoundSettingsChanged,
     this.reduceMotion = ReduceMotionSetting.system,
     this.onReduceMotionChanged,
+    this.crossAppLinkRepository =
+        const SharedPreferencesCrossAppLinkCodeRepository(),
   });
 
   @override
@@ -91,6 +99,39 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DailyEvent? _currentEvent;
   bool _isFirstBuild = true;
+
+  /// クロスアプリ連携コード（null = 未連携）
+  String? _linkCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLinkCode();
+  }
+
+  /// 連携コードを読み込み、カードの状態表示へ反映する（best-effort）。
+  Future<void> _loadLinkCode() async {
+    String? code;
+    try {
+      code = await widget.crossAppLinkRepository.load();
+    } catch (_) {
+      code = null;
+    }
+    if (!mounted) return;
+    setState(() => _linkCode = code);
+  }
+
+  /// クロスアプリ連携設定画面を開き、戻ったら状態を読み直す。
+  Future<void> _openCrossAppLinkSettings(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CrossAppLinkSettingsScreen(
+          repository: widget.crossAppLinkRepository,
+        ),
+      ),
+    );
+    await _loadLinkCode();
+  }
 
   @override
   void didUpdateWidget(HomeScreen oldWidget) {
@@ -121,8 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => TextScaleSettingsScreen(
           key: AppKeys.textScaleScreenScaffold,
           currentScale: widget.textScale,
-          onScaleChanged: (scale) =>
-              widget.onScaleChanged?.call(scale),
+          onScaleChanged: (scale) => widget.onScaleChanged?.call(scale),
         ),
       ),
     );
@@ -182,7 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Text(
                   event.title,
-                  style: const TextStyle(color: RetroPalette.gold, fontSize: 16),
+                  style:
+                      const TextStyle(color: RetroPalette.gold, fontSize: 16),
                 ),
               ),
             ],
@@ -422,18 +463,17 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
 
             // 政治的成長（獲得関心事が初期より増えた場合のみ表示）
-            if (widget.concernEvolutions.any((e) => e.isAcquired))
-              ...[
-                SemanticHelper.interactive(
-                  testId: 'btn_home_concern_growth',
-                  label: '政治的成長',
-                  child: _ConcernGrowthCard(
-                    key: AppKeys.homeConcernGrowth,
-                    evolutions: widget.concernEvolutions,
-                  ),
+            if (widget.concernEvolutions.any((e) => e.isAcquired)) ...[
+              SemanticHelper.interactive(
+                testId: 'btn_home_concern_growth',
+                label: '政治的成長',
+                child: _ConcernGrowthCard(
+                  key: AppKeys.homeConcernGrowth,
+                  evolutions: widget.concernEvolutions,
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // 社会ムード
             SemanticHelper.interactive(
@@ -447,7 +487,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
 
             // デイリーイベント
-            if (widget.dailyEvent != null && widget.dailyEvent!.choices == null) ...[
+            if (widget.dailyEvent != null &&
+                widget.dailyEvent!.choices == null) ...[
               SemanticHelper.interactive(
                 testId: 'btn_home_daily_event',
                 label: '今日の出来事',
@@ -579,6 +620,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+            const SizedBox(height: 12),
+
+            // クロスアプリ連携（学びの循環）— 状態表示＋設定への導線
+            SemanticHelper.interactive(
+              testId: 'btn_home_crossapp_link',
+              label: 'クロスアプリ連携',
+              child: _CrossAppLinkCard(
+                key: AppKeys.homeCrossAppLinkCard,
+                linkCode: _linkCode,
+                onPressed: () => _openCrossAppLinkSettings(context),
+              ),
+            ),
           ],
         ),
       ),
@@ -852,7 +905,7 @@ class _CountdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-              isElectionTime ? '今すぐ!' : '$remainingTurns',
+            isElectionTime ? '今すぐ!' : '$remainingTurns',
             style: TextStyle(
               color:
                   isElectionTime ? RetroPalette.gold : RetroPalette.textNormal,
@@ -962,7 +1015,8 @@ class _ConcernGrowthCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: RetroPalette.gold, size: 18),
+              const Icon(Icons.lightbulb_outline,
+                  color: RetroPalette.gold, size: 18),
               const SizedBox(width: 6),
               const Text(
                 '政治的成長',
@@ -984,31 +1038,105 @@ class _ConcernGrowthCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           ...acquired.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      e.concern.label,
+                      style: const TextStyle(
+                        color: RetroPalette.textNormal,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        e.reason,
+                        style: const TextStyle(
+                          color: RetroPalette.voteAbstain,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+/// クロスアプリ連携（学びの循環）カード。
+///
+/// 選挙・クイズの学びが rpg-task の報酬へ繋がる導線。
+/// AppBar は既に飽和しているため、ホーム本文の最下部に1枚だけ置く。
+class _CrossAppLinkCard extends StatelessWidget {
+  /// 保存済みの連携コード（null = 未連携）
+  final String? linkCode;
+
+  final VoidCallback? onPressed;
+
+  const _CrossAppLinkCard({
+    super.key,
+    required this.linkCode,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final code = linkCode;
+    final linked = code != null;
+    final accent = linked ? RetroPalette.success : RetroPalette.panelBorder;
+    return Container(
+      decoration: BoxDecoration(
+        color: RetroPalette.panelBg,
+        border: Border.all(color: accent),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Icon(
+            linked ? Icons.link : Icons.link_off,
+            color: linked ? RetroPalette.success : RetroPalette.textAccent,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  e.concern.label,
-                  style: const TextStyle(
-                    color: RetroPalette.textNormal,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                const Text(
+                  'クロスアプリ連携（学びの循環）',
+                  style: TextStyle(
+                    color: RetroPalette.gold,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    e.reason,
-                    style: const TextStyle(
-                      color: RetroPalette.voteAbstain,
-                      fontSize: 11,
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  linked
+                      ? '連携済み：${exportUserIdFrom(code)}…'
+                      : '未連携（選挙・クイズの学びが報酬になりません）',
+                  style: TextStyle(
+                    color:
+                        linked ? RetroPalette.success : RetroPalette.textNormal,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
-          )),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            key: AppKeys.homeCrossAppLinkButton,
+            onPressed: onPressed,
+            child: const Text('設定'),
+          ),
         ],
       ),
     );
