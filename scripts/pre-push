@@ -1,0 +1,33 @@
+#!/bin/bash
+# ⛩️ Pre-push quality gate — 八百万の掟：push前にCIエラーを撲滅せよ
+# ✅ flutter analyze + flutter test の両方を通過しないとpush不可
+# 第三条：CI常時グリーン — コード変更後は必ず全テスト通過を確認せよ
+#
+# 【正本】このファイルが唯一の正本。.git/hooks/pre-push は生成物にすぎない。
+#   設置: bash scripts/install-git-hooks.sh
+#   対象差し替え: PRE_PUSH_TEST_TARGET=<path>（既定 test = 全量）
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+export PATH="/tmp/flutter/bin:$PATH"
+
+# CI は UTC。JST 前提の時限爆弾をローカルで検出するため TZ=UTC を強制する。
+export TZ=UTC
+
+TARGET="${PRE_PUSH_TEST_TARGET:-test}"
+
+# GATE 1: flutter analyze (warnings = failure)
+echo "⛩️ Gate 1/2: flutter analyze..."
+flutter analyze --no-fatal-infos
+echo "✅ flutter analyze: OK"
+
+# GATE 2: flutter test (any failure = rejection)
+echo ""
+echo "⛩️ Gate 2/2: flutter test (target: ${TARGET})..."
+flutter test --no-pub --reporter compact "${TARGET}"
+echo "✅ flutter test: ALL PASSED"
+
+echo ""
+echo "⛩️ 全ゲート突破 — push許可"
