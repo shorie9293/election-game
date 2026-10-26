@@ -51,6 +51,6 @@ const kAboutInfo = AboutInfo._(
   appName: '選挙ゲーム',
   version: '1.0.30+37',
   contactEmail: 'horie.shunta@gmail.com',
-  privacyPolicyUrl: 'https://yoppala.in/privacy',
+  privacyPolicyUrl: 'https://www.yoppala.in/privacy',
   tagline: '選挙を遊びながら政治の仕組みを学ぶ、生活シミュレーション。',
 );

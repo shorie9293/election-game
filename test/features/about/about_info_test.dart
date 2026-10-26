@@ -8,7 +8,7 @@ void main() {
       expect(kAboutInfo.appName, '選挙ゲーム');
       expect(kAboutInfo.version, isNotEmpty);
       expect(kAboutInfo.contactEmail, 'horie.shunta@gmail.com');
-      expect(kAboutInfo.privacyPolicyUrl, 'https://yoppala.in/privacy');
+      expect(kAboutInfo.privacyPolicyUrl, 'https://www.yoppala.in/privacy');
       expect(kAboutInfo.tagline, isNotEmpty);
     });
 
