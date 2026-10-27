@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -34,6 +35,7 @@ class TurnoutScreen extends StatelessWidget {
       appBar: AppBar(
         title: Semantics(
           key: AppKeys.turnoutTitle,
+          identifier: 'txt_turnout_title',
           header: true,
           label: '投票率',
           child: const Text('投票率'),
@@ -72,13 +74,17 @@ class TurnoutScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      turnout.turnoutPercentLabel,
-                      key: AppKeys.turnoutRateLabel,
-                      style: const TextStyle(
-                        color: RetroPalette.gold,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                    SemanticHelper.container(
+                      testId: 'txt_turnout_rate',
+                      label: '投票率 ${turnout.turnoutPercentLabel}',
+                      child: Text(
+                        turnout.turnoutPercentLabel,
+                        key: AppKeys.turnoutRateLabel,
+                        style: const TextStyle(
+                          color: RetroPalette.gold,
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -118,16 +124,25 @@ class TurnoutScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      '職業別の参加率',
-                      style: TextStyle(
-                        color: RetroPalette.textAccent,
-                        fontSize: 14,
+                    SemanticHelper.container(
+                      testId: 'sec_turnout_breakdown',
+                      label: '職業別の参加率',
+                      child: const Text(
+                        '職業別の参加率',
+                        style: TextStyle(
+                          color: RetroPalette.textAccent,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     for (final jobTurnout in turnout.jobBreakdown) ...[
-                      _JobTurnoutRow(jobTurnout: jobTurnout),
+                      SemanticHelper.container(
+                        testId: 'item_turnout_job_${jobTurnout.job.name}',
+                        label: '${jobTurnout.job.label}の参加率 '
+                            '${jobTurnout.rateLabel}',
+                        child: _JobTurnoutRow(jobTurnout: jobTurnout),
+                      ),
                       const SizedBox(height: 10),
                     ],
                   ],

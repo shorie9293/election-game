@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -112,12 +113,17 @@ class _SupportTimelineSectionState extends State<SupportTimelineSection> {
                   ),
                 ),
               ),
-              TextButton(
-                key: AppKeys.supportTimelineRecordButton,
-                onPressed: _recording ? null : _onRecord,
-                child: const Text(
-                  '世論を記録',
-                  style: TextStyle(color: RetroPalette.gold),
+              SemanticHelper.interactive(
+                testId: 'btn_support_record_opinion',
+                label: '世論を記録',
+                hint: '現在の支持率を推移に記録します',
+                child: TextButton(
+                  key: AppKeys.supportTimelineRecordButton,
+                  onPressed: _recording ? null : _onRecord,
+                  child: const Text(
+                    '世論を記録',
+                    style: TextStyle(color: RetroPalette.gold),
+                  ),
                 ),
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -143,72 +144,94 @@ class _CandidateAlmanacScreenState extends State<CandidateAlmanacScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: TextField(
-              key: AppKeys.almanacSearchField,
-              decoration: const InputDecoration(
-                hintText: '名前・政党で絞り込み',
-                prefixIcon: Icon(Icons.search),
+            child: SemanticHelper.textField(
+              testId: 'txt_almanac_search',
+              label: '候補者を検索',
+              child: TextField(
+                key: AppKeys.almanacSearchField,
+                decoration: const InputDecoration(
+                  hintText: '名前・政党で絞り込み',
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (value) => setState(() => _query = value),
               ),
-              onChanged: (value) => setState(() => _query = value),
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                FilterChip(
-                  key: AppKeys.almanacFactionAll,
-                  label: const Text('すべて'),
-                  selected: _selectedFaction == null,
-                  onSelected: (_) => setState(() => _selectedFaction = null),
-                ),
-                const SizedBox(width: 8),
-                for (final faction in factions) ...[
+          SemanticHelper.container(
+            testId: 'sec_almanac_faction_filter',
+            label: '派閥で絞り込み',
+            explicitChildNodes: true,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
                   FilterChip(
-                    key: AppKeys.almanacFactionChip(faction),
-                    label: Text(faction),
-                    selected: _selectedFaction == faction,
-                    onSelected: (_) =>
-                        setState(() => _selectedFaction = faction),
+                    key: AppKeys.almanacFactionAll,
+                    label: const Text('すべて'),
+                    selected: _selectedFaction == null,
+                    onSelected: (_) => setState(() => _selectedFaction = null),
                   ),
                   const SizedBox(width: 8),
+                  for (final faction in factions) ...[
+                    FilterChip(
+                      key: AppKeys.almanacFactionChip(faction),
+                      label: Text(faction),
+                      selected: _selectedFaction == faction,
+                      onSelected: (_) =>
+                          setState(() => _selectedFaction = faction),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                '候補者 ${visible.length}人',
-                key: AppKeys.almanacCountLabel,
-                style: const TextStyle(
-                  color: RetroPalette.textNormal,
-                  fontSize: 13,
+              child: SemanticHelper.container(
+                testId: 'txt_almanac_count',
+                child: Text(
+                  '候補者 ${visible.length}人',
+                  key: AppKeys.almanacCountLabel,
+                  style: const TextStyle(
+                    color: RetroPalette.textNormal,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
           ),
           Expanded(
             child: visible.isEmpty
-                ? const Center(
-                    child: Text(
-                      '該当する候補者がいません',
-                      key: AppKeys.almanacEmptyState,
-                      style: TextStyle(color: RetroPalette.textNormal),
+                ? Center(
+                    child: SemanticHelper.container(
+                      testId: 'txt_almanac_empty',
+                      child: const Text(
+                        '該当する候補者がいません',
+                        key: AppKeys.almanacEmptyState,
+                        style: TextStyle(color: RetroPalette.textNormal),
+                      ),
                     ),
                   )
                 : ListView.builder(
                     key: AppKeys.almanacList,
                     padding: const EdgeInsets.all(16),
                     itemCount: visible.length,
-                    itemBuilder: (context, index) =>
-                        _CandidateCard(
-                      profile: visible[index],
-                      onTap: () => _showDetail(visible[index]),
-                    ),
+                    itemBuilder: (context, index) {
+                      final profile = visible[index];
+                      return SemanticHelper.container(
+                        testId:
+                            'item_almanac_candidate_${profile.candidate.id}',
+                        explicitChildNodes: true,
+                        child: _CandidateCard(
+                          profile: profile,
+                          onTap: () => _showDetail(profile),
+                        ),
+                      );
+                    },
                   ),
           ),
         ],

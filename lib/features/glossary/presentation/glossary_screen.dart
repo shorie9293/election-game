@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -78,21 +79,25 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: TextField(
-                key: AppKeys.glossarySearchField,
-                decoration: InputDecoration(
-                  hintText: '用語・読みで絞り込み',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _query.isEmpty
-                      ? null
-                      : IconButton(
-                          key: AppKeys.glossarySearchClear,
-                          icon: const Icon(Icons.clear),
-                          tooltip: 'クリア',
-                          onPressed: () => setState(() => _query = ''),
-                        ),
+              child: SemanticHelper.textField(
+                testId: 'txt_glossary_search',
+                label: '用語を検索',
+                child: TextField(
+                  key: AppKeys.glossarySearchField,
+                  decoration: InputDecoration(
+                    hintText: '用語・読みで絞り込み',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            key: AppKeys.glossarySearchClear,
+                            icon: const Icon(Icons.clear),
+                            tooltip: 'クリア',
+                            onPressed: () => setState(() => _query = ''),
+                          ),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
                 ),
-                onChanged: (value) => setState(() => _query = value),
               ),
             ),
             SingleChildScrollView(
@@ -137,11 +142,14 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
             ),
             Expanded(
               child: visible.isEmpty
-                  ? const Center(
-                      child: Text(
-                        '該当する用語がありません',
-                        key: AppKeys.glossaryEmptyState,
-                        style: TextStyle(color: RetroPalette.textNormal),
+                  ? Center(
+                      child: SemanticHelper.container(
+                        testId: 'txt_glossary_empty',
+                        child: const Text(
+                          '該当する用語がありません',
+                          key: AppKeys.glossaryEmptyState,
+                          style: TextStyle(color: RetroPalette.textNormal),
+                        ),
                       ),
                     )
                   : ListView.builder(
@@ -149,9 +157,12 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
                       itemCount: visible.length,
                       itemBuilder: (context, index) {
                         final term = visible[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Container(
+                        return SemanticHelper.container(
+                          testId: 'item_glossary_term_${term.id}',
+                          explicitChildNodes: true,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
                             key: AppKeys.glossaryTermTile(term.id),
                             decoration: BoxDecoration(
                               color: RetroPalette.panelBg,
@@ -192,6 +203,7 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
                                 ),
                               ),
                             ),
+                          ),
                           ),
                         );
                       },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -89,7 +90,11 @@ class _ManifestoTrackerScreenState extends State<ManifestoTrackerScreen> {
               ),
             ),
             if (allRecords.isNotEmpty) ...[
-              _SummaryCard(records: allRecords),
+              SemanticHelper.container(
+                testId: 'sec_manifesto_progress',
+                label: '公約実現度の進捗サマリー',
+                child: _SummaryCard(records: allRecords),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -101,13 +106,23 @@ class _ManifestoTrackerScreenState extends State<ManifestoTrackerScreen> {
             ],
             Expanded(
               child: records.isEmpty
-                  ? const _EmptyState()
+                  ? SemanticHelper.container(
+                      testId: 'sec_manifesto_empty',
+                      label: '公約実現度の記録なし',
+                      child: const _EmptyState(),
+                    )
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: records.length,
-                      itemBuilder: (context, index) => _RecordCard(
-                        record: records[index],
-                      ),
+                      itemBuilder: (context, index) {
+                        final record = records[index];
+                        return SemanticHelper.container(
+                          testId: 'item_manifesto_record_${record.electionId}',
+                          label: '${record.winnerName}の公約実現度 '
+                              '${record.percentLabel}',
+                          child: _RecordCard(record: record),
+                        );
+                      },
                     ),
             ),
           ],
@@ -277,13 +292,19 @@ class _PledgeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      key: AppKeys.manifestoPledgeRow(record.electionId, pledge.lifeParamKey),
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Text(
-        '${pledge.label} / 約束: ${pledge.promisedDelta} / '
-        '実際: ${pledge.actualDelta} / ${pledge.status.label}',
-        style: const TextStyle(color: RetroPalette.textAccent, fontSize: 12),
+    final promiseId =
+        'item_manifesto_promise_${record.electionId}_${pledge.lifeParamKey}';
+    return SemanticHelper.container(
+      testId: promiseId,
+      label: '${pledge.label}の公約実現度 ${pledge.status.label}',
+      child: Padding(
+        key: AppKeys.manifestoPledgeRow(record.electionId, pledge.lifeParamKey),
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Text(
+          '${pledge.label} / 約束: ${pledge.promisedDelta} / '
+          '実際: ${pledge.actualDelta} / ${pledge.status.label}',
+          style: const TextStyle(color: RetroPalette.textAccent, fontSize: 12),
+        ),
       ),
     );
   }

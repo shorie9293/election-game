@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import '../../../core/testing/app_keys.dart';
 import '../../../domain/models/candidate.dart';
@@ -153,7 +154,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
         children: [
           Text(widget.electionTitle),
           const SizedBox(height: 8),
-          const Text('当選すると思う候補者を選んでください'),
+          SemanticHelper.container(
+            testId: 'sec_prediction_candidates',
+            child: const Text('当選すると思う候補者を選んでください'),
+          ),
           ..._candidates.map((candidate) {
             return RadioListTile<String>(
               key: AppKeys.predictionCandidateOption(candidate.id),
@@ -167,9 +171,12 @@ class _PredictionScreenState extends State<PredictionScreen> {
               subtitle: Text(candidate.faction),
             );
           }),
-          Text(
-            key: AppKeys.predictionShareLabel,
-            '予想得票率: $_predictedShare%',
+          SemanticHelper.container(
+            testId: 'txt_prediction_share',
+            child: Text(
+              key: AppKeys.predictionShareLabel,
+              '予想得票率: $_predictedShare%',
+            ),
           ),
           Slider(
             key: AppKeys.predictionShareSlider,
@@ -182,13 +189,28 @@ class _PredictionScreenState extends State<PredictionScreen> {
               setState(() => _predictedShare = value.round());
             },
           ),
-          ElevatedButton(
-            key: AppKeys.predictionSaveButton,
-            onPressed: _save,
-            child: const Text('予想を保存'),
+          SemanticHelper.interactive(
+            testId: 'btn_prediction_submit',
+            label: '予想を保存',
+            child: ElevatedButton(
+              key: AppKeys.predictionSaveButton,
+              onPressed: _save,
+              child: const Text('予想を保存'),
+            ),
           ),
           const SizedBox(height: 24),
-          if (outcomeCard != null) outcomeCard,
+          if (outcomeCard != null)
+            SemanticHelper.container(
+              testId: 'sec_prediction_result',
+              label: '予想の答え合わせ結果',
+              explicitChildNodes: true,
+              child: outcomeCard,
+            )
+          else if (_loaded)
+            SemanticHelper.container(
+              testId: 'txt_prediction_result_empty',
+              child: const Text('答え合わせはまだありません'),
+            ),
         ],
       ),
     );

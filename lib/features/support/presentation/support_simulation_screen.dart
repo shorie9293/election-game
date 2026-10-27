@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -91,6 +92,7 @@ class _SupportSimulationScreenState extends State<SupportSimulationScreen> {
       appBar: AppBar(
         title: Semantics(
           key: AppKeys.supportTitle,
+          identifier: 'txt_support_title',
           header: true,
           label: '支持率シミュレーション',
           child: const Text('支持率シミュレーション'),
@@ -113,7 +115,11 @@ class _SupportSimulationScreenState extends State<SupportSimulationScreen> {
                 )
               else ...[
                 // 世論カード
-                _MoodCard(simulation: simulation),
+                SemanticHelper.container(
+                  testId: 'sec_support_mood',
+                  label: '世論の傾向と有権者数',
+                  child: _MoodCard(simulation: simulation),
+                ),
                 const SizedBox(height: 16),
                 // 首位カード
                 if (simulation.leader != null)
@@ -124,9 +130,14 @@ class _SupportSimulationScreenState extends State<SupportSimulationScreen> {
                 const SizedBox(height: 16),
                 // 候補者一覧
                 for (final snapshot in simulation.snapshots)
-                  _CandidateRow(
-                    snapshot: snapshot,
-                    topJob: _topJobs[snapshot.candidateId],
+                  SemanticHelper.container(
+                    testId: 'item_support_candidate_${snapshot.candidateId}',
+                    label: '${snapshot.candidateName}の支持率 '
+                        '${snapshot.supportPercentLabel}',
+                    child: _CandidateRow(
+                      snapshot: snapshot,
+                      topJob: _topJobs[snapshot.candidateId],
+                    ),
                   ),
                 const SizedBox(height: 16),
               ],
@@ -248,12 +259,16 @@ class _LeaderCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                leader.supportPercentLabel,
-                style: const TextStyle(
-                  color: RetroPalette.gold,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              SemanticHelper.container(
+                testId: 'txt_support_rate',
+                label: '首位の支持率 ${leader.supportPercentLabel}',
+                child: Text(
+                  leader.supportPercentLabel,
+                  style: const TextStyle(
+                    color: RetroPalette.gold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
