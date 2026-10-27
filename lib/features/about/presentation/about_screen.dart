@@ -2,14 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:election_game/features/about/domain/about_info.dart';
+import 'package:election_game/features/about/domain/external_url_opener.dart';
 import 'package:election_game/features/about/presentation/about_app_keys.dart';
+import 'package:election_game/features/about/presentation/external_url_launcher.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 
 /// アプリについて画面（バージョン・OSSライセンス・プライバシー・問い合わせ）。
+///
+/// プライバシーポリシーと問い合わせはタップで外部アプリ（ブラウザ・メール）へ渡し、
+/// 開けなかった場合は従来のコピー導線（ダイアログ＋クリップボード）へ退避する。
 class AboutScreen extends StatelessWidget {
   final AboutInfo info;
 
-  const AboutScreen({super.key, this.info = kAboutInfo});
+  /// 外部URLを開く口（試練ではフェイクを注入する）。
+  final ExternalUrlOpener urlOpener;
+
+  const AboutScreen({
+    super.key,
+    this.info = kAboutInfo,
+    this.urlOpener = launchExternalUrl,
+  });
 
   void _copy(BuildContext context, String text) {
     try {
@@ -32,6 +44,24 @@ class AboutScreen extends StatelessWidget {
           ),
         );
     }
+  }
+
+  /// 外部アプリで開く。開けなければ（false・例外）コピー導線へ退避する。
+  Future<void> _openOrCopy(
+    BuildContext context,
+    Uri? uri,
+    void Function(BuildContext context) showCopyDialog,
+  ) async {
+    var opened = false;
+    if (uri != null) {
+      try {
+        opened = await urlOpener(uri);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (opened || !context.mounted) return;
+    showCopyDialog(context);
   }
 
   void _showPrivacyPolicy(BuildContext context) {
@@ -130,7 +160,11 @@ class AboutScreen extends StatelessWidget {
               'プライバシーポリシー',
               style: TextStyle(color: RetroPalette.textNormal),
             ),
-            onTap: () => _showPrivacyPolicy(context),
+            onTap: () => _openOrCopy(
+              context,
+              externalUri(info.privacyPolicyUrl),
+              _showPrivacyPolicy,
+            ),
           ),
           ListTile(
             key: AboutAppKeys.aboutContactTile,
@@ -140,7 +174,11 @@ class AboutScreen extends StatelessWidget {
               '問い合わせ',
               style: TextStyle(color: RetroPalette.textNormal),
             ),
-            onTap: () => _showContact(context),
+            onTap: () => _openOrCopy(
+              context,
+              mailtoUri(info.contactEmail),
+              _showContact,
+            ),
           ),
         ],
       ),

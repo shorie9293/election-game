@@ -39,7 +39,13 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      MaterialApp(home: AboutScreen(info: info)),
+      MaterialApp(
+        home: AboutScreen(
+          info: info,
+          // ダイアログ退避経路を検証するため、外部起動は必ず失敗させる。
+          urlOpener: (_) async => false,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
   }
