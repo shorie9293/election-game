@@ -24,6 +24,7 @@ import 'package:election_game/features/heatmap/presentation/play_activity_heatma
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
+import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
@@ -296,11 +297,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// 通知設定画面へ遷移する。
+  ///
+  /// 静穏時間（おやすみモード）のリポジトリを注入することで、
+  /// 通知設定画面に導線が出る（本番の既定結線）。
   void _openReminderSettings(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const ElectionReminderSettingsScreen(
+        builder: (_) => ElectionReminderSettingsScreen(
           key: AppKeys.reminderSettingsScreen,
+          quietHoursRepository: HiveQuietHoursRepository(),
         ),
       ),
     );

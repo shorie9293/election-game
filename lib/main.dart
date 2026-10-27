@@ -15,7 +15,10 @@ import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
+import 'package:election_game/features/reminder/data/election_reminder_repository.dart';
+import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
 import 'package:election_game/screens/game_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,22 @@ void main() {
   }
 
   initFirebase();
+
+  // 通知設定（リマインダー・静穏時間）の保存先を起動時に開いておく。
+  // 通知経路の静穏時間ガードは「既に open 済みの box を読むだけ」のため、
+  // ここで open しないと保存済み設定が通知へ反映されない。
+  Future<void> initReminderStorage() async {
+    try {
+      await Hive.initFlutter();
+      await Hive.openBox<String>(HiveQuietHoursRepository.boxName);
+      await Hive.openBox<String>(HiveElectionReminderRepository.boxName);
+    } catch (e) {
+      // 失敗しても起動は妨げない（通知設定は既定値＝静穏時間なしで継続）。
+      debugPrint('[main] ⚠️ 通知設定ストレージ初期化失敗（アプリは継続）: $e');
+    }
+  }
+
+  initReminderStorage();
 
   // クラッシュ検知: Flutterフレームワーク内の致命的エラーを Crashlytics へ送信
   FlutterError.onError = (FlutterErrorDetails details) {

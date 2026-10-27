@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/features/reminder/data/election_reminder_repository.dart';
+import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
 import 'package:election_game/features/reminder/domain/election_reminder_schedule_service.dart';
 import 'package:election_game/features/reminder/domain/election_reminder_settings.dart';
+import 'package:election_game/features/reminder/domain/quiet_hours_settings.dart';
 import 'package:election_game/features/reminder/infrastructure/election_reminder_scheduler.dart';
+import 'package:election_game/features/reminder/presentation/quiet_hours_settings_screen.dart';
 
 /// 選挙リマインダーの設定画面。
 class ElectionReminderSettingsScreen extends StatefulWidget {
@@ -12,13 +15,16 @@ class ElectionReminderSettingsScreen extends StatefulWidget {
     super.key,
     ElectionReminderRepository? repository,
     ElectionReminderScheduler? scheduler,
+    QuietHoursRepository? quietHoursRepository,
     DateTime Function()? now,
   })  : _repository = repository,
         _scheduler = scheduler,
+        _quietHoursRepository = quietHoursRepository,
         _now = now;
 
   final ElectionReminderRepository? _repository;
   final ElectionReminderScheduler? _scheduler;
+  final QuietHoursRepository? _quietHoursRepository;
   final DateTime Function()? _now;
 
   @override
@@ -38,6 +44,9 @@ class _ElectionReminderSettingsScreenState
   bool _loading = true;
   ElectionReminderSettings _settings = ElectionReminderSettings.defaults();
 
+  /// 静穏時間の要約ラベル（リポジトリ未注入なら null＝導線を出さない）。
+  String? _quietHoursSummary;
+
   @override
   void initState() {
     super.initState();
@@ -49,11 +58,39 @@ class _ElectionReminderSettingsScreenState
 
   Future<void> _load() async {
     final settings = await _repository.load();
+    final quietHoursSummary = await _loadQuietHoursSummary();
     if (!mounted) return;
     setState(() {
       _settings = settings;
+      _quietHoursSummary = quietHoursSummary;
       _loading = false;
     });
+  }
+
+  /// 静穏時間の要約を読む。リポジトリ未注入なら null（導線なし）。
+  Future<String?> _loadQuietHoursSummary() async {
+    final repository = widget._quietHoursRepository;
+    if (repository == null) return null;
+    final QuietHoursSettings quietHours = await repository.load();
+    if (!quietHours.enabled) return '無効';
+    if (quietHours.isInactiveRange) return '${quietHours.label}（抑止なし）';
+    return '${quietHours.label}・${quietHours.policy.label}';
+  }
+
+  Future<void> _openQuietHours() async {
+    final repository = widget._quietHoursRepository;
+    if (repository == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => QuietHoursSettingsScreen(
+          repository: repository,
+          now: widget._now,
+        ),
+      ),
+    );
+    final summary = await _loadQuietHoursSummary();
+    if (!mounted) return;
+    setState(() => _quietHoursSummary = summary);
   }
 
   @override
@@ -158,6 +195,16 @@ class _ElectionReminderSettingsScreenState
                   title: const Text('次回の通知'),
                   subtitle: Text(_nextLabel()),
                 ),
+                if (_quietHoursSummary != null) ...[
+                  const Divider(),
+                  ListTile(
+                    key: AppKeys.quietHoursEntry,
+                    title: const Text('静穏時間（おやすみモード）'),
+                    subtitle: Text(_quietHoursSummary!),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _openQuietHours,
+                  ),
+                ],
                 const SizedBox(height: 8),
                 ElevatedButton(
                   key: AppKeys.reminderSaveButton,

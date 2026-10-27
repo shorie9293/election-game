@@ -307,6 +307,23 @@ class AppKeys {
   static Key reminderKindSwitch(String name) =>
       Key('reminder_kind_switch_$name');
 
+  // Quiet hours（静穏時間・おやすみモード）
+  static const quietHoursScreen = Key('quiet_hours_screen');
+  static const quietHoursEntry = Key('quiet_hours_entry');
+  static const quietHoursEnabledSwitch = Key('quiet_hours_enabled_switch');
+  static const quietHoursStartHourDropdown =
+      Key('quiet_hours_start_hour_dropdown');
+  static const quietHoursStartMinuteDropdown =
+      Key('quiet_hours_start_minute_dropdown');
+  static const quietHoursEndHourDropdown = Key('quiet_hours_end_hour_dropdown');
+  static const quietHoursEndMinuteDropdown =
+      Key('quiet_hours_end_minute_dropdown');
+  static const quietHoursPreview = Key('quiet_hours_preview');
+  static const quietHoursStatus = Key('quiet_hours_status');
+  static const quietHoursSaveButton = Key('quiet_hours_save_button');
+  static Key quietHoursPolicyRadio(String storageKey) =>
+      Key('quiet_hours_policy_$storageKey');
+
   // Life param trend（生活パラメータの推移）
   static const lifeParamTrendScreen = Key('life_param_trend_screen');
   static const homeLifeParamTrendButton = Key('home_life_param_trend_button');
