@@ -5,6 +5,7 @@ import 'package:election_game/core/theme/reduce_motion_repository.dart';
 import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/features/settings/presentation/reduce_motion_settings_screen.dart';
+import 'package:election_game/features/settings/presentation/settings_hub_screen.dart';
 
 /// テーマ設定画面 — ライト／ダーク／システムの選択と永続化
 ///
@@ -20,12 +21,19 @@ class ThemeModeSettingsScreen extends StatefulWidget {
   /// 「動きを減らす」設定の変更通知。
   final ValueChanged<ReduceMotionSetting>? onReduceMotionChanged;
 
+  /// 設定ハブ画面のビルダー（試練での注入用。未指定なら実画面）。
+  ///
+  /// ホームの AppBar は既にアイコン飽和のため、`横展開` の導線はここから
+  /// 設定ハブへ渡す（#148 で実証済みの手法）。
+  final WidgetBuilder? settingsHubBuilder;
+
   const ThemeModeSettingsScreen({
     super.key,
     required this.currentMode,
     required this.onModeChanged,
     this.reduceMotion = ReduceMotionSetting.system,
     this.onReduceMotionChanged,
+    this.settingsHubBuilder,
   });
 
   @override
@@ -34,6 +42,21 @@ class ThemeModeSettingsScreen extends StatefulWidget {
 }
 
 class _ThemeModeSettingsScreenState extends State<ThemeModeSettingsScreen> {
+  void _openSettingsHub() {
+    final builder = widget.settingsHubBuilder;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: builder ??
+            (context) => SettingsHubScreen(
+                  themeMode: widget.currentMode,
+                  onThemeModeChanged: widget.onModeChanged,
+                  reduceMotion: widget.reduceMotion,
+                  onReduceMotionChanged: widget.onReduceMotionChanged,
+                ),
+      ),
+    );
+  }
+
   void _openReduceMotionSettings() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -57,6 +80,20 @@ class _ThemeModeSettingsScreenState extends State<ThemeModeSettingsScreen> {
       appBar: AppBar(title: const Text('テーマ設定')),
       body: ListView(
         children: [
+          // 導線: 散在する設定をまとめた設定ハブ（#181）。
+          SemanticHelper.interactive(
+            testId: 'btn_settings_hub_entry',
+            label: '設定ハブ',
+            child: ListTile(
+              key: AppKeys.settingsHubEntry,
+              leading: const Icon(Icons.tune),
+              title: const Text('設定ハブ'),
+              subtitle: const Text('通知・サウンド・データなど各種設定をまとめて開く'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _openSettingsHub,
+            ),
+          ),
+          const Divider(),
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text('アプリのテーマを選択できます。選択すると即座に反映されます。'),

@@ -173,6 +173,21 @@ class AppKeys {
   static const reduceMotionScreen = Key('reduce_motion_screen');
   static const reduceMotionEntry = Key('reduce_motion_entry');
 
+  // Settings hub（設定ハブ #181）
+  static const settingsHubScreen = Key('settings_hub_screen');
+  static const settingsHubEntry = Key('settings_hub_entry');
+  static const settingsHubThemeTile = Key('settings_hub_theme_tile');
+  static const settingsHubTextScaleTile = Key('settings_hub_text_scale_tile');
+  static const settingsHubReduceMotionTile =
+      Key('settings_hub_reduce_motion_tile');
+  static const settingsHubSoundTile = Key('settings_hub_sound_tile');
+  static const settingsHubReminderTile = Key('settings_hub_reminder_tile');
+  static const settingsHubQuietHoursTile = Key('settings_hub_quiet_hours_tile');
+  static const settingsHubBackupTile = Key('settings_hub_backup_tile');
+  static const settingsHubAppLockTile = Key('settings_hub_app_lock_tile');
+  static const settingsHubCrossAppTile = Key('settings_hub_cross_app_tile');
+  static const settingsHubAboutTile = Key('settings_hub_about_tile');
+
   // Turnout（投票率）
   static const turnoutScreen = Key('turnout_screen');
   static const turnoutTitle = Key('turnout_title');
