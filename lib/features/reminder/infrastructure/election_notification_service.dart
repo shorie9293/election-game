@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:election_game/features/reminder/domain/notification_route_resolver.dart';
 import 'package:election_game/features/reminder/domain/quiet_hours_delivery.dart';
 import 'package:election_game/features/reminder/domain/quiet_hours_service.dart';
 
@@ -36,11 +37,22 @@ abstract class ElectionReminderNotificationPort {
 /// プラットフォームチャネル呼出は全て try/catch で包み、
 /// 失敗しても例外を投げない（MissingPluginException 対策）。
 class ElectionNotificationService implements ElectionReminderNotificationPort {
-  ElectionNotificationService({QuietHoursGuard? guard}) : _guard = guard;
+  ElectionNotificationService({
+    QuietHoursGuard? guard,
+    void Function(ResolvedNotificationRoute route)? onRouteSelected,
+  })  : _guard = guard,
+        _onRouteSelected = onRouteSelected;
 
   static const int _reminderBaseId = 300; // 通知ID = 300 + weekday(1..7)
   static const int _testNotificationId = 899;
   static const String _channelId = 'election_reminder';
+
+  /// 通知 payload の route として許可する集合（resolver と router で共通）。
+  static const Set<String> allowedRoutes = NotificationRoutes.all;
+
+  /// リマインダー／テスト通知のタップ先（本編＝ゲーム画面）。
+  static final String _defaultPayload =
+      NotificationRouteResolver.buildPayload(NotificationRoutes.game);
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -48,7 +60,55 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
   /// 静穏時間ガード。null なら [scheduleReminder] の引数に従う。
   final QuietHoursGuard? _guard;
 
+  /// 通知タップで解決された遷移先の通知先（配線は main.dart）。
+  ///
+  /// setter で差し替えると保留中の route を即座に引き渡す
+  /// （Navigator 準備前にタップ／起動された場合の取りこぼし防止）。
+  void Function(ResolvedNotificationRoute route)? get onRouteSelected =>
+      _onRouteSelected;
+  set onRouteSelected(void Function(ResolvedNotificationRoute route)? handler) {
+    _onRouteSelected = handler;
+    _drainPendingRoute();
+  }
+
+  void Function(ResolvedNotificationRoute route)? _onRouteSelected;
+
+  /// 未配線時に保持する保留 route。
+  ResolvedNotificationRoute? _pendingRoute;
+
   bool _initialized = false;
+
+  /// 保留中の遷移先を取り出す（取り出しは1度だけ）。
+  ///
+  /// 既に [onRouteSelected] へ引き渡し済みなら null を返す。
+  ResolvedNotificationRoute? consumePendingRoute() {
+    final pending = _pendingRoute;
+    _pendingRoute = null;
+    return pending;
+  }
+
+  /// 通知 payload を解決し、保留＋配線済みなら即時通知する。
+  ///
+  /// 未知・破損 payload は黙って捨てる（タップ経路を壊さない）。
+  void handlePayload(String? payload) {
+    final resolved = NotificationRouteResolver.resolve(
+      payload,
+      allowedRoutes: allowedRoutes,
+    );
+    if (resolved == null) return;
+    _pendingRoute = resolved;
+    _drainPendingRoute();
+  }
+
+  /// 保留 route を配線済みの受け手へ1度だけ引き渡す。
+  void _drainPendingRoute() {
+    final handler = _onRouteSelected;
+    if (handler == null) return;
+    final pending = _pendingRoute;
+    if (pending == null) return;
+    _pendingRoute = null;
+    handler(pending);
+  }
 
   /// timezone 初期化＋tz.local 補正＋プラグイン初期化＋チャンネル作成。
   Future<void> initialize() async {
@@ -73,7 +133,10 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         requestSoundPermission: true,
       );
       const settings = InitializationSettings(android: android, iOS: darwin);
-      await _plugin.initialize(settings);
+      await _plugin.initialize(
+        settings,
+        onDidReceiveNotificationResponse: _onNotificationResponse,
+      );
 
       final androidImpl = _plugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
@@ -90,9 +153,20 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         );
       }
       _initialized = true;
+
+      // 通知タップでアプリが起動された場合も同じ入口（handlePayload）を通す。
+      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp ?? false) {
+        handlePayload(launchDetails?.notificationResponse?.payload);
+      }
     } catch (e) {
       debugPrint('[ElectionNotificationService] initialize 失敗: $e');
     }
+  }
+
+  /// プラグインからのタップ通知（フォアグラウンド／バックグラウンド）。
+  void _onNotificationResponse(NotificationResponse response) {
+    handlePayload(response.payload);
   }
 
   /// 通知権限を要求する。失敗時は false。
@@ -177,6 +251,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+          payload: _defaultPayload,
         );
       }
     } catch (e) {
@@ -214,6 +289,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
           ),
           iOS: DarwinNotificationDetails(),
         ),
+        payload: _defaultPayload,
       );
     } catch (e) {
       debugPrint('[ElectionNotificationService] sendTestNotification 失敗: $e');

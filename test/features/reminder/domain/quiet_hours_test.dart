@@ -160,7 +160,8 @@ void main() {
 
   group('QuietHoursService.deferUntil', () {
     test('日跨ぎ区間の深夜は同日の終了時刻へ繰り延べる', () {
-      final deferred = QuietHoursService.deferUntil(DateTime.utc(2021, 3, 1, 2, 0), 1320, 420);
+      final deferred =
+          QuietHoursService.deferUntil(DateTime(2021, 3, 1, 2, 0), 1320, 420);
       expect(deferred, DateTime(2021, 3, 1, 7, 0));
     });
 

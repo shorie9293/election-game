@@ -17,6 +17,9 @@ import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
 import 'package:election_game/features/reminder/data/election_reminder_repository.dart';
 import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
+import 'package:election_game/features/reminder/domain/notification_route_resolver.dart';
+import 'package:election_game/features/reminder/infrastructure/election_notification_service.dart';
+import 'package:election_game/features/reminder/presentation/notification_tap_router.dart';
 import 'package:election_game/screens/game_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -74,14 +77,45 @@ void main() {
   };
 
   runApp(
-    const ErrorBoundary(
-      child: ElectionGameApp(),
+    ErrorBoundary(
+      child: ElectionGameApp(
+        navigatorKey: _navigatorKey,
+        notificationService: _notificationService,
+        onNotificationRoute: _notificationTapRouter.handle,
+      ),
     ),
   );
 }
 
+/// 通知タップ遷移用の Navigator 参照（MaterialApp へ渡す）。
+final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+/// 通知タップの遷移先 router（route → 画面）。
+final NotificationTapRouter _notificationTapRouter =
+    NotificationTapRouter(navigatorKey: _navigatorKey);
+
+/// 通知サービス（タップ payload → router の結線を含む）。
+final ElectionNotificationService _notificationService =
+    ElectionNotificationService(
+  onRouteSelected: _notificationTapRouter.handle,
+);
+
 class ElectionGameApp extends StatefulWidget {
-  const ElectionGameApp({super.key});
+  const ElectionGameApp({
+    super.key,
+    this.navigatorKey,
+    this.notificationService,
+    this.onNotificationRoute,
+  });
+
+  /// 通知タップからの遷移に使う Navigator 参照。
+  final GlobalKey<NavigatorState>? navigatorKey;
+
+  /// 通知サービス（未注入なら通知タップ配線は行わない）。
+  final ElectionNotificationService? notificationService;
+
+  /// 解決済み route の受け手（通常は [NotificationTapRouter.handle]）。
+  final void Function(ResolvedNotificationRoute route)? onNotificationRoute;
 
   @override
   State<ElectionGameApp> createState() => _ElectionGameAppState();
@@ -105,6 +139,21 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
     _loadThemeMode();
     _loadSoundSettings();
     _loadReduceMotion();
+    _initNotifications();
+  }
+
+  /// 通知タップ経路の配線（Navigator 準備後＝初回フレーム後に初期化する）。
+  ///
+  /// 起動タップ（getNotificationAppLaunchDetails）の保留 route は
+  /// [ElectionNotificationService.onRouteSelected] の差し替え時に引き渡される。
+  void _initNotifications() {
+    final service = widget.notificationService;
+    if (service == null) return;
+    final handler = widget.onNotificationRoute;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (handler != null) service.onRouteSelected = handler;
+      unawaited(service.initialize());
+    });
   }
 
   /// 保存された動きの削減設定を読み込む（未保存/不正値は system）。
@@ -175,6 +224,7 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '選挙体験RPG — 天照町',
+      navigatorKey: widget.navigatorKey,
       theme: RetroTheme.lightThemeData,
       darkTheme: RetroTheme.themeData,
       themeMode: _themeMode.toThemeMode(),
