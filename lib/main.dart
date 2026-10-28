@@ -15,6 +15,9 @@ import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_bootstrap.dart';
+import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
+import 'package:election_game/features/backup/domain/game_data_backup.dart';
 import 'package:election_game/features/reminder/data/election_reminder_repository.dart';
 import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
 import 'package:election_game/features/reminder/domain/notification_route_resolver.dart';
@@ -75,6 +78,16 @@ void main() {
     }
     return true;
   };
+
+  // ━━━ 起動時1日1回の自動バックアップ（世代3ローテーション・投げっぱなし）━━━
+  // 既存の手動バックアップ画面は不変。失敗しても起動は妨げない。
+  scheduleAutoBackup(
+    buildJson: () async {
+      final data =
+          await const SharedPreferencesGameDataBackupRepository().collect();
+      return const GameDataBackupService().build(data);
+    },
+  );
 
   runApp(
     ErrorBoundary(
