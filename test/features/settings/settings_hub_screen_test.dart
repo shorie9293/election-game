@@ -15,6 +15,7 @@ const _entries = <({String label, Key key})>[
   (label: '通知設定', key: AppKeys.settingsHubReminderTile),
   (label: '静穏時間', key: AppKeys.settingsHubQuietHoursTile),
   (label: 'バックアップ', key: AppKeys.settingsHubBackupTile),
+  (label: '自動バックアップ', key: AppKeys.settingsHubAutoBackupTile),
   (label: 'アプリロック', key: AppKeys.settingsHubAppLockTile),
   (label: 'クロスアプリ連携', key: AppKeys.settingsHubCrossAppTile),
   (label: 'アプリについて', key: AppKeys.settingsHubAboutTile),
@@ -44,7 +45,7 @@ void main() {
       );
     });
 
-    testWidgets('全10項目のラベルが並ぶ', (tester) async {
+    testWidgets('全11項目のラベルが並ぶ', (tester) async {
       await _pumpHub(tester, const SettingsHubScreen());
 
       for (final entry in _entries) {
@@ -59,7 +60,7 @@ void main() {
           reason: '${entry.label} のラベルが無い',
         );
       }
-      expect(_entries.length, 10);
+      expect(_entries.length, 11);
     });
 
     testWidgets('全項目に chevron（遷移アイコン）が付く', (tester) async {
@@ -91,6 +92,7 @@ void main() {
           reminderScreenBuilder: counting('通知設定'),
           quietHoursScreenBuilder: counting('静穏時間'),
           backupScreenBuilder: counting('バックアップ'),
+          autoBackupScreenBuilder: counting('自動バックアップ'),
           appLockScreenBuilder: counting('アプリロック'),
           crossAppScreenBuilder: counting('クロスアプリ連携'),
           aboutScreenBuilder: counting('アプリについて'),

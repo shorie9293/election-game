@@ -8,6 +8,9 @@ abstract class AutoBackupStore {
   /// 自動バックアップのみを列挙する（手動ファイルは含めない）。
   Future<List<AutoBackupEntry>> list();
 
+  /// [fileName] の内容を読む（存在しなければ null）。
+  Future<String?> read(String fileName);
+
   /// [fileName] へ [contents] を書き出す（上書き）。
   Future<void> write(String fileName, String contents);
 
@@ -39,6 +42,9 @@ class InMemoryAutoBackupStore implements AutoBackupStore {
         ),
     ];
   }
+
+  @override
+  Future<String?> read(String fileName) async => contents[fileName];
 
   @override
   Future<void> write(String fileName, String contents) async {
@@ -95,6 +101,18 @@ class FileAutoBackupStore implements AutoBackupStore {
       entries.add(AutoBackupEntry(fileName: name, createdAt: createdAt));
     }
     return entries;
+  }
+
+  @override
+  Future<String?> read(String fileName) async {
+    try {
+      final dir = await _resolve();
+      final file = File('${dir.path}${Platform.pathSeparator}$fileName');
+      if (!await file.exists()) return null;
+      return await file.readAsString();
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

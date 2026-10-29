@@ -12,6 +12,10 @@ class _ThrowingListStore implements AutoBackupStore {
   Future<List<AutoBackupEntry>> list() async => throw StateError('list失敗');
 
   @override
+  Future<String?> read(String fileName) async =>
+      throw StateError('read失敗');
+
+  @override
   Future<void> write(String fileName, String contents) async {}
 
   @override

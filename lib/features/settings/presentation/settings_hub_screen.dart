@@ -9,6 +9,11 @@ import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/features/about/presentation/about_screen.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_restorer_impl.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_sharer_impl.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_store.dart';
+import 'package:election_game/features/auto_backup/presentation/auto_backup_screen.dart';
+import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
 import 'package:election_game/features/crossapp/presentation/crossapp_link_settings_screen.dart';
@@ -49,6 +54,7 @@ class SettingsHubScreen extends StatelessWidget {
     this.reminderScreenBuilder,
     this.quietHoursScreenBuilder,
     this.backupScreenBuilder,
+    this.autoBackupScreenBuilder,
     this.appLockScreenBuilder,
     this.crossAppScreenBuilder,
     this.aboutScreenBuilder,
@@ -81,12 +87,35 @@ class SettingsHubScreen extends StatelessWidget {
   final WidgetBuilder? reminderScreenBuilder;
   final WidgetBuilder? quietHoursScreenBuilder;
   final WidgetBuilder? backupScreenBuilder;
+  final WidgetBuilder? autoBackupScreenBuilder;
   final WidgetBuilder? appLockScreenBuilder;
   final WidgetBuilder? crossAppScreenBuilder;
   final WidgetBuilder? aboutScreenBuilder;
 
   void _push(BuildContext context, WidgetBuilder builder) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: builder));
+  }
+
+  /// 自動バックアップ画面の既定構成（保存先・復元・共有・即時実行）。
+  Widget _buildAutoBackupScreen() {
+    final store = FileAutoBackupStore();
+    const repository = SharedPreferencesGameDataBackupRepository();
+    return AutoBackupScreen(
+      store: store,
+      restorer: StoreAutoBackupRestorer(
+        store: store,
+        repository: repository,
+        buildCurrentJson: () =>
+            buildCurrentGameDataJson(repository, DateTime.now()),
+        now: DateTime.now,
+      ),
+      sharer: TempFileAutoBackupSharer(),
+      onBackupNow: () => writeAutoBackupNow(
+        store: store,
+        repository: repository,
+        now: DateTime.now(),
+      ),
+    );
   }
 
   Widget _tile({
@@ -223,6 +252,17 @@ class SettingsHubScreen extends StatelessWidget {
             onTap: () => _push(
               context,
               backupScreenBuilder ?? (_) => const GameDataBackupScreen(),
+            ),
+          ),
+          _tile(
+            key: AppKeys.settingsHubAutoBackupTile,
+            testId: 'btn_settings_hub_auto_backup',
+            icon: Icons.history,
+            title: '自動バックアップ',
+            subtitle: '毎日の自動保存を閲覧・復元・共有',
+            onTap: () => _push(
+              context,
+              autoBackupScreenBuilder ?? (_) => _buildAutoBackupScreen(),
             ),
           ),
           _tile(

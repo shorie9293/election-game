@@ -184,6 +184,7 @@ class AppKeys {
   static const settingsHubReminderTile = Key('settings_hub_reminder_tile');
   static const settingsHubQuietHoursTile = Key('settings_hub_quiet_hours_tile');
   static const settingsHubBackupTile = Key('settings_hub_backup_tile');
+  static const settingsHubAutoBackupTile = Key('settings_hub_auto_backup_tile');
   static const settingsHubAppLockTile = Key('settings_hub_app_lock_tile');
   static const settingsHubCrossAppTile = Key('settings_hub_cross_app_tile');
   static const settingsHubAboutTile = Key('settings_hub_about_tile');
@@ -460,4 +461,20 @@ class AppKeys {
   static const crossAppLinkSaveButton = Key('crossapp_link_save_button');
   static const crossAppLinkClearButton = Key('crossapp_link_clear_button');
   static const crossAppLinkError = Key('crossapp_link_error');
+
+  // Auto backup（自動バックアップの閲覧・復元・共有）
+  static const autoBackupScreen = Key('auto_backup_screen');
+  static const autoBackupEmptyLabel = Key('auto_backup_empty_label');
+  static const autoBackupRetentionLabel = Key('auto_backup_retention_label');
+  static const autoBackupBackupNowButton =
+      Key('auto_backup_backup_now_button');
+  static const autoBackupRestoreConfirmButton =
+      Key('auto_backup_restore_confirm_button');
+  static const autoBackupRestoreCancelButton =
+      Key('auto_backup_restore_cancel_button');
+  static Key autoBackupRow(String fileName) => Key('auto_backup_row_$fileName');
+  static Key autoBackupRestoreButton(String fileName) =>
+      Key('auto_backup_restore_button_$fileName');
+  static Key autoBackupShareButton(String fileName) =>
+      Key('auto_backup_share_button_$fileName');
 }
