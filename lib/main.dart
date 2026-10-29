@@ -16,6 +16,10 @@ import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_bootstrap.dart';
+import 'package:election_game/features/lifecycle/domain/day_rollover_detector.dart';
+import 'package:election_game/features/lifecycle/presentation/app_lifecycle_refresher.dart';
+import 'package:election_game/features/lifecycle/presentation/day_rollover_providers.dart';
+import 'package:election_game/features/reminder/infrastructure/election_reminder_scheduler.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
 import 'package:election_game/features/backup/domain/game_data_backup.dart';
 import 'package:election_game/features/reminder/data/election_reminder_repository.dart';
@@ -24,6 +28,7 @@ import 'package:election_game/features/reminder/domain/notification_route_resolv
 import 'package:election_game/features/reminder/infrastructure/election_notification_service.dart';
 import 'package:election_game/features/reminder/presentation/notification_tap_router.dart';
 import 'package:election_game/screens/game_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() {
@@ -90,14 +95,55 @@ void main() {
   );
 
   runApp(
-    ErrorBoundary(
-      child: ElectionGameApp(
-        navigatorKey: _navigatorKey,
-        notificationService: _notificationService,
-        onNotificationRoute: _notificationTapRouter.handle,
+    ProviderScope(
+      child: ErrorBoundary(
+        // ProviderScope の内側で context を取る（containerOf のため）。
+        child: Builder(
+          builder: (context) => AppLifecycleRefresher(
+            detector: _dayRolloverDetector,
+            onRollover: () => _onDayRollover(context),
+            child: ElectionGameApp(
+              navigatorKey: _navigatorKey,
+              notificationService: _notificationService,
+              onNotificationRoute: _notificationTapRouter.handle,
+            ),
+          ),
+        ),
       ),
     ),
   );
+}
+
+/// アプリ起動時に固定した「最後に見た時刻」。前面復帰のたびに更新される。
+final DayRolloverDetector _dayRolloverDetector =
+    DayRolloverDetector(lastSeen: DateTime.now());
+
+/// 日付跨ぎ（＋前面復帰）時の再計算。
+///
+/// 1. 日付依存 Provider を撃ち直す（実データに到達させる本体）。
+/// 2. リマインダーを新しい「今日」で再スケジュールする。
+///    静穏時間ガードは [ElectionNotificationScheduler] が保存済み設定から
+///    生成するため、静穏時間の配線は保たれる。
+Future<void> _onDayRollover(BuildContext context) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+
+  // 「今日」を撃ち直す。appTodayProvider を watch する日付依存 Provider
+  // （プレイ活動ヒートマップの連続日数・活動日数など）が新暦日で再計算される。
+  container.invalidate(appTodayProvider);
+  // 実データ（選挙アーカイブ）を読み直す日付依存 Provider。
+  container.invalidate(playActivityHeatmapProvider);
+
+  try {
+    final settings = await HiveElectionReminderRepository().load();
+    if (settings.enabled) {
+      await ElectionNotificationScheduler(
+        service: _notificationService,
+      ).apply(settings);
+    }
+  } catch (e) {
+    // 通知再スケジュールの失敗はアプリの継続を妨げない。
+    debugPrint('[main] ⚠️ 日付跨ぎ後の通知再スケジュール失敗: $e');
+  }
 }
 
 /// 通知タップ遷移用の Navigator 参照（MaterialApp へ渡す）。

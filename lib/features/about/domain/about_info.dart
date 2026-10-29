@@ -49,7 +49,7 @@ class AboutInfo {
 /// （test/features/about/about_version_sync_test.dart が検証する）。
 const kAboutInfo = AboutInfo._(
   appName: '選挙ゲーム',
-  version: '1.0.35+42',
+  version: '1.0.36+43',
   contactEmail: 'horie.shunta@gmail.com',
   privacyPolicyUrl: 'https://www.yoppala.in/privacy',
   tagline: '選挙を遊びながら政治の仕組みを学ぶ、生活シミュレーション。',

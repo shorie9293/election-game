@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -6,12 +7,17 @@ import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/play_activity_heatmap.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/domain/services/play_activity_heatmap_service.dart';
+import 'package:election_game/features/lifecycle/presentation/day_rollover_providers.dart';
 
 /// 選挙プレイの活動ヒートマップ画面。
 ///
 /// 選挙を実施した日付を GitHub 風のセルグリッドで可視化する。
 /// 試練では [electionsOverride] と [now] を注入して repository 読込を回避できる。
-class PlayActivityHeatmapScreen extends StatefulWidget {
+///
+/// どちらも未注入の本番経路では [playActivityHeatmapProvider] を watch する。
+/// 同 Provider は「今日」依存（currentStreak）なので、日付跨ぎの前面復帰時に
+/// ルートの `AppLifecycleRefresher` が invalidate して再計算させる。
+class PlayActivityHeatmapScreen extends ConsumerStatefulWidget {
   /// 試練用：null なら repository から読み込む。
   final List<Election>? electionsOverride;
 
@@ -29,13 +35,22 @@ class PlayActivityHeatmapScreen extends StatefulWidget {
   });
 
   @override
-  State<PlayActivityHeatmapScreen> createState() =>
+  ConsumerState<PlayActivityHeatmapScreen> createState() =>
       _PlayActivityHeatmapScreenState();
 }
 
-class _PlayActivityHeatmapScreenState extends State<PlayActivityHeatmapScreen> {
+class _PlayActivityHeatmapScreenState
+    extends ConsumerState<PlayActivityHeatmapScreen> {
   List<Election>? _elections;
   bool _loading = true;
+  bool _providerAvailable = false;
+  bool _resolvedSource = false;
+
+  /// 試練用の注入が無く、ProviderScope 配下の本番経路なら Provider を watch する。
+  bool get _viaProvider =>
+      widget.electionsOverride == null &&
+      widget.now == null &&
+      _providerAvailable;
 
   @override
   void initState() {
@@ -44,8 +59,38 @@ class _PlayActivityHeatmapScreenState extends State<PlayActivityHeatmapScreen> {
     if (override != null) {
       _elections = List<Election>.of(override);
       _loading = false;
+    }
+    // 注入が無い場合は didChangeDependencies で ProviderScope の有無を
+    // 見てから読み込み経路（Provider / repository）を決める。
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resolvedSource) return;
+    _resolvedSource = true;
+    if (widget.electionsOverride != null) return;
+
+    _providerAvailable = _hasProviderScope;
+    if (_viaProvider) {
+      // Provider（FutureProvider）が読み込みを担う。
+      _loading = false;
     } else {
+      // ProviderScope 外（ウィジェット単体試練など）は従来どおり repository。
       _loadElections();
+    }
+  }
+
+  /// 祖先に [ProviderScope] があるか。
+  ///
+  /// ProviderScope を持たない単体マウント（試練）でも画面が壊れないよう、
+  /// 無い場合は repository 経路へフォールバックする。
+  bool get _hasProviderScope {
+    try {
+      ProviderScope.containerOf(context, listen: false);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -85,6 +130,20 @@ class _PlayActivityHeatmapScreenState extends State<PlayActivityHeatmapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_viaProvider) {
+      // 本番経路: 日付跨ぎで invalidate される Provider を watch する。
+      final async = ref.watch(playActivityHeatmapProvider);
+      return async.when(
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        // 読込失敗は空表示（従来の repository 失敗時と同じ振る舞い）。
+        error: (_, __) => _buildHeatmap(
+          PlayActivityHeatmapService.build(const [], now: DateTime.now()),
+        ),
+        data: _buildHeatmap,
+      );
+    }
+
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -95,6 +154,10 @@ class _PlayActivityHeatmapScreenState extends State<PlayActivityHeatmapScreen> {
       now: widget.now ?? DateTime.now(),
     );
 
+    return _buildHeatmap(hm);
+  }
+
+  Widget _buildHeatmap(PlayActivityHeatmap hm) {
     return Scaffold(
       backgroundColor: RetroPalette.bgDark,
       appBar: AppBar(title: const Text('選挙プレイの歩み')),
@@ -220,7 +283,8 @@ class _HeatmapGrid extends StatelessWidget {
                   _Cell(
                     day: day,
                     color: levelColor(
-                      PlayActivityHeatmapService.levelOf(day.count, hm.maxCount),
+                      PlayActivityHeatmapService.levelOf(
+                          day.count, hm.maxCount),
                     ),
                   ),
               ],
