@@ -13,6 +13,7 @@ import 'package:election_game/features/backup/presentation/game_data_backup_scre
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
 import 'package:election_game/features/crossapp/presentation/crossapp_link_settings_screen.dart';
 import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
+import 'package:election_game/features/reminder/infrastructure/notification_permission_requester.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/features/reminder/presentation/quiet_hours_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/reduce_motion_settings_screen.dart';
@@ -195,6 +196,9 @@ class SettingsHubScreen extends StatelessWidget {
               reminderScreenBuilder ??
                   (_) => ElectionReminderSettingsScreen(
                         quietHoursRepository: HiveQuietHoursRepository(),
+                        // 通知権限の要求（Android 13+ は要求しないと通知が出ない）。
+                        permissionRequester:
+                            PlatformNotificationPermissionRequester(),
                       ),
             ),
           ),

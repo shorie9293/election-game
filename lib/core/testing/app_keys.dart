@@ -316,6 +316,12 @@ class AppKeys {
   static const reminderSaveButton = Key('reminder_save_button');
   static const reminderTestButton = Key('reminder_test_button');
   static const reminderStatusLabel = Key('reminder_status_label');
+
+  // 通知権限（Android 13+ の POST_NOTIFICATIONS）
+  static const reminderPermissionBanner =
+      Key('reminder_permission_banner');
+  static const reminderPermissionSettingsButton =
+      Key('reminder_permission_settings_button');
   static const homeReminderButton = Key('home_reminder_button');
   static Key reminderWeekdayChip(int weekday) =>
       Key('reminder_weekday_chip_$weekday');

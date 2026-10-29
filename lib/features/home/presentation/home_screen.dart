@@ -25,6 +25,7 @@ import 'package:election_game/features/archive/presentation/election_archive_scr
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/features/manifesto/presentation/manifesto_tracker_screen.dart';
 import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
+import 'package:election_game/features/reminder/infrastructure/notification_permission_requester.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/domain/repositories/manifesto_repository.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
@@ -306,6 +307,8 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => ElectionReminderSettingsScreen(
           key: AppKeys.reminderSettingsScreen,
           quietHoursRepository: HiveQuietHoursRepository(),
+          // 通知権限の要求（Android 13+ は要求しないと通知が出ない）。
+          permissionRequester: PlatformNotificationPermissionRequester(),
         ),
       ),
     );
