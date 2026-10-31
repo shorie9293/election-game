@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import '../../../core/testing/app_keys.dart';
+import '../../../core/widgets/load_state_view.dart';
 import '../../../domain/models/candidate.dart';
 import '../../../domain/models/election.dart';
 import '../data/prediction_repository.dart';
@@ -38,6 +39,8 @@ class _PredictionScreenState extends State<PredictionScreen> {
   int _predictedShare = 50;
   ElectionPrediction? _saved;
   bool _loaded = false;
+  String? _loadError;
+  bool _loadErrorRetryable = true;
 
   /// State再利用時の陳腐化を避けるため、候補者は必ず getter 経由で参照する。
   List<Candidate> get _candidates => widget.candidates;
@@ -52,13 +55,22 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   Future<void> _loadSaved() async {
-    final prediction = await _repository.load(widget.electionId);
+    final result = await _repository.tryLoad(widget.electionId);
     if (!mounted) return;
     setState(() {
-      _saved = prediction;
-      if (prediction != null) {
-        _selectedWinnerId = prediction.predictedWinnerId;
-        _predictedShare = prediction.predictedShare;
+      if (result.isFailure) {
+        // 失敗を空状態へ潰さず、再試行可能なエラーとして保持する。
+        _loadError = result.message ?? '予想の読み込みに失敗しました';
+        _loadErrorRetryable = result.retryable;
+        _saved = null;
+      } else {
+        _loadError = null;
+        final prediction = result.valueOrNull;
+        _saved = prediction;
+        if (prediction != null) {
+          _selectedWinnerId = prediction.predictedWinnerId;
+          _predictedShare = prediction.predictedShare;
+        }
       }
       _loaded = true;
     });
@@ -143,7 +155,8 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final outcomeCard = _loaded ? _buildOutcomeCard() : null;
+    final outcomeCard =
+        _loaded && _loadError == null ? _buildOutcomeCard() : null;
     return Scaffold(
       key: AppKeys.predictionScreen,
       appBar: AppBar(
@@ -199,7 +212,17 @@ class _PredictionScreenState extends State<PredictionScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          if (outcomeCard != null)
+          if (_loadError != null)
+            SemanticHelper.container(
+              testId: 'txt_prediction_result_error',
+              label: '予想の読み込み失敗',
+              explicitChildNodes: true,
+              child: LoadErrorView(
+                message: _loadError!,
+                onRetry: _loadErrorRetryable ? _loadSaved : null,
+              ),
+            )
+          else if (outcomeCard != null)
             SemanticHelper.container(
               testId: 'sec_prediction_result',
               label: '予想の答え合わせ結果',
@@ -209,7 +232,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
           else if (_loaded)
             SemanticHelper.container(
               testId: 'txt_prediction_result_empty',
-              child: const Text('答え合わせはまだありません'),
+              child: const LoadEmptyView(message: '答え合わせはまだありません'),
             ),
         ],
       ),
