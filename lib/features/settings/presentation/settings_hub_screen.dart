@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
+import 'package:election_game/core/crash/crash_log_repository.dart';
+import 'package:election_game/core/crash/crash_log_screen.dart';
 import 'package:election_game/core/infrastructure/app_lock_settings_screen.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/testing/app_keys.dart';
@@ -58,6 +60,8 @@ class SettingsHubScreen extends StatelessWidget {
     this.appLockScreenBuilder,
     this.crossAppScreenBuilder,
     this.aboutScreenBuilder,
+    this.crashLogScreenBuilder,
+    this.crashLogRepository,
   });
 
   /// 文字サイズの現在値と変更通知。
@@ -91,6 +95,12 @@ class SettingsHubScreen extends StatelessWidget {
   final WidgetBuilder? appLockScreenBuilder;
   final WidgetBuilder? crossAppScreenBuilder;
   final WidgetBuilder? aboutScreenBuilder;
+
+  /// 「不具合の報告」の遷移先ビルダー（未指定なら実画面）。
+  final WidgetBuilder? crashLogScreenBuilder;
+
+  /// クラッシュログの読み込み元（未指定なら端末保存の実装）。
+  final CrashLogRepository? crashLogRepository;
 
   void _push(BuildContext context, WidgetBuilder builder) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: builder));
@@ -147,6 +157,14 @@ class SettingsHubScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('設定')),
       body: ListView(
         children: [
+          CrashReportTile(
+            repository: crashLogRepository,
+            onTap: () => _push(
+              context,
+              crashLogScreenBuilder ??
+                  (_) => CrashLogScreen(repository: crashLogRepository),
+            ),
+          ),
           _tile(
             key: AppKeys.settingsHubThemeTile,
             testId: 'btn_settings_hub_theme',
@@ -158,8 +176,7 @@ class SettingsHubScreen extends StatelessWidget {
               themeModeScreenBuilder ??
                   (_) => ThemeModeSettingsScreen(
                         currentMode: themeMode,
-                        onModeChanged: (mode) =>
-                            onThemeModeChanged?.call(mode),
+                        onModeChanged: (mode) => onThemeModeChanged?.call(mode),
                         reduceMotion: reduceMotion,
                         onReduceMotionChanged: onReduceMotionChanged,
                       ),

@@ -8,6 +8,7 @@ import 'package:election_game/features/settings/presentation/theme_mode_settings
 
 /// 設定ハブに並ぶ全項目（ラベルと試験用Key）。
 const _entries = <({String label, Key key})>[
+  (label: '不具合の報告', key: AppKeys.settingsHubCrashLogTile),
   (label: 'テーマ設定', key: AppKeys.settingsHubThemeTile),
   (label: '文字サイズ', key: AppKeys.settingsHubTextScaleTile),
   (label: '動きを減らす', key: AppKeys.settingsHubReduceMotionTile),
@@ -45,7 +46,7 @@ void main() {
       );
     });
 
-    testWidgets('全11項目のラベルが並ぶ', (tester) async {
+    testWidgets('全12項目のラベルが並ぶ', (tester) async {
       await _pumpHub(tester, const SettingsHubScreen());
 
       for (final entry in _entries) {
@@ -60,7 +61,7 @@ void main() {
           reason: '${entry.label} のラベルが無い',
         );
       }
-      expect(_entries.length, 11);
+      expect(_entries.length, 12);
     });
 
     testWidgets('全項目に chevron（遷移アイコン）が付く', (tester) async {
@@ -96,6 +97,7 @@ void main() {
           appLockScreenBuilder: counting('アプリロック'),
           crossAppScreenBuilder: counting('クロスアプリ連携'),
           aboutScreenBuilder: counting('アプリについて'),
+          crashLogScreenBuilder: counting('不具合の報告'),
         ),
       );
 

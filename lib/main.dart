@@ -5,7 +5,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:takamagahara_ui/takamagahara_ui.dart';
+import 'package:election_game/core/crash/crash_guard.dart';
+import 'package:election_game/core/crash/error_boundary.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/core/theme/theme_mode_repository.dart';
@@ -31,9 +32,26 @@ import 'package:election_game/screens/game_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+/// アプリの入口。
+///
+/// 未捕捉の非同期例外を端末内ログへ残すため、初期化と `runApp` を
+/// `runZonedGuarded` の内側で行う（Binding の生成もゾーン内）。
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded<void>(
+    () {
+      WidgetsFlutterBinding.ensureInitialized();
+      bootstrap();
+    },
+    (Object error, StackTrace stack) {
+      // PlatformDispatcher から転送された分は既に記録済み（二重記録しない）。
+      handleZoneError(error, stack);
+      debugPrint('[main] ⚠️ 未捕捉の非同期例外: $error');
+    },
+  );
+}
 
+/// 起動時の組み立て（従来の `main` 本体。初期化順序は変えない）。
+void bootstrap() {
   // ━━━ Firebase 運用監視基盤（Crashlytics クラッシュ検知 + Analytics KPI計測）━━━
   Future<void> initFirebase() async {
     try {
@@ -83,6 +101,11 @@ void main() {
     }
     return true;
   };
+
+  // 端末内クラッシュログ（未捕捉例外の受け皿）を合流させる。
+  // 既存の onError（Crashlytics 送信 + presentError）を保存して内側で呼ぶため、
+  // 既存設定より後に置くこと（先に置くと既存設定に上書きされ記録が失われる）。
+  installCrashGuard();
 
   // ━━━ 起動時1日1回の自動バックアップ（世代3ローテーション・投げっぱなし）━━━
   // 既存の手動バックアップ画面は不変。失敗しても起動は妨げない。

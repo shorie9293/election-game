@@ -319,8 +319,7 @@ class AppKeys {
   static const reminderStatusLabel = Key('reminder_status_label');
 
   // 通知権限（Android 13+ の POST_NOTIFICATIONS）
-  static const reminderPermissionBanner =
-      Key('reminder_permission_banner');
+  static const reminderPermissionBanner = Key('reminder_permission_banner');
   static const reminderPermissionSettingsButton =
       Key('reminder_permission_settings_button');
   static const homeReminderButton = Key('home_reminder_button');
@@ -466,8 +465,7 @@ class AppKeys {
   static const autoBackupScreen = Key('auto_backup_screen');
   static const autoBackupEmptyLabel = Key('auto_backup_empty_label');
   static const autoBackupRetentionLabel = Key('auto_backup_retention_label');
-  static const autoBackupBackupNowButton =
-      Key('auto_backup_backup_now_button');
+  static const autoBackupBackupNowButton = Key('auto_backup_backup_now_button');
   static const autoBackupRestoreConfirmButton =
       Key('auto_backup_restore_confirm_button');
   static const autoBackupRestoreCancelButton =
@@ -477,4 +475,13 @@ class AppKeys {
       Key('auto_backup_restore_button_$fileName');
   static Key autoBackupShareButton(String fileName) =>
       Key('auto_backup_share_button_$fileName');
+
+  // Crash log（未捕捉例外の端末内記録）
+  static const errorBoundaryFallback = Key('error_boundary_fallback');
+  static const errorBoundaryReloadButton = Key('error_boundary_reload_button');
+  static const settingsHubCrashLogTile = Key('settings_hub_crash_log_tile');
+  static const crashLogScreen = Key('crash_log_screen');
+  static const crashLogSummary = Key('crash_log_summary');
+  static const crashLogEmptyState = Key('crash_log_empty_state');
+  static const crashLogCopyButton = Key('crash_log_copy_button');
 }
