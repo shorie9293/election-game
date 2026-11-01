@@ -15,6 +15,7 @@ import 'package:election_game/features/auto_backup/data/auto_backup_restorer_imp
 import 'package:election_game/features/auto_backup/data/auto_backup_sharer_impl.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_store.dart';
 import 'package:election_game/features/auto_backup/presentation/auto_backup_screen.dart';
+import 'package:election_game/features/backup/data/election_csv_sharer.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
@@ -268,7 +269,10 @@ class SettingsHubScreen extends StatelessWidget {
             subtitle: 'ゲーム進行データの書き出しと復元',
             onTap: () => _push(
               context,
-              backupScreenBuilder ?? (_) => const GameDataBackupScreen(),
+              backupScreenBuilder ??
+                  (_) => const GameDataBackupScreen(
+                        csvSharer: SharePlusElectionCsvSharer(),
+                      ),
             ),
           ),
           _tile(

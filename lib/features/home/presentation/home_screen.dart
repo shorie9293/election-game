@@ -19,6 +19,7 @@ import 'package:election_game/features/settings/presentation/theme_mode_settings
 import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
+import 'package:election_game/features/backup/data/election_csv_sharer.dart';
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/heatmap/presentation/play_activity_heatmap_screen.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
@@ -331,6 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute<void>(
         builder: (context) => GameDataBackupScreen(
           key: AppKeys.backupScreen,
+          csvSharer: const SharePlusElectionCsvSharer(),
         ),
       ),
     );

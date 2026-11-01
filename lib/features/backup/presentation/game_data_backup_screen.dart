@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
+import 'package:election_game/domain/repositories/election_archive_repository.dart';
+import 'package:election_game/features/backup/data/election_csv_sharer.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
+import 'package:election_game/features/backup/domain/election_csv_service.dart';
 import 'package:election_game/features/backup/domain/game_data_backup.dart';
 
 /// クリップボード書き込みの差し替え可能な関数型。
@@ -23,6 +26,15 @@ class GameDataBackupScreen extends StatefulWidget {
   final ClipboardWriter copyToClipboard;
   final String? initialImportText;
 
+  /// 注入された場合のみ「結果をCSVで共有」ボタンを表示する（既定は非表示）。
+  final ElectionCsvSharer? csvSharer;
+
+  /// CSV出力対象の選挙アーカイブ。
+  final ElectionArchiveRepository archiveRepository;
+
+  /// CSV組立サービス。
+  final ElectionCsvService csvService;
+
   const GameDataBackupScreen({
     super.key,
     this.repository = const SharedPreferencesGameDataBackupRepository(),
@@ -30,6 +42,9 @@ class GameDataBackupScreen extends StatefulWidget {
     this.now = DateTime.now,
     this.copyToClipboard = writeToSystemClipboard,
     this.initialImportText,
+    this.csvSharer,
+    this.archiveRepository = const SharedPreferencesElectionArchiveRepository(),
+    this.csvService = const ElectionCsvService(),
   });
 
   @override
@@ -93,6 +108,31 @@ class _GameDataBackupScreenState extends State<GameDataBackupScreen> {
       _status = 'コピーしました';
       _error = null;
     });
+  }
+
+  /// 選挙アーカイブをCSV化して共有する。BOM付与は共有実装側で1回だけ行う。
+  Future<void> _shareCsv() async {
+    final sharer = widget.csvSharer;
+    if (sharer == null) return;
+    try {
+      final elections = await widget.archiveRepository.load();
+      final csv = widget.csvService.exportResultsCsv(elections);
+      await sharer.share(
+        csv: csv,
+        fileName: electionCsvFileName(widget.now()),
+      );
+      if (!mounted) return;
+      setState(() {
+        _status = '選挙結果CSVを共有しました';
+        _error = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'CSVの共有に失敗しました';
+        _status = null;
+      });
+    }
   }
 
   Future<void> _restore() async {
@@ -192,6 +232,14 @@ class _GameDataBackupScreenState extends State<GameDataBackupScreen> {
             onPressed: _exportedJson == null ? null : _copy,
             child: const Text('コピー'),
           ),
+          if (widget.csvSharer != null) ...[
+            const SizedBox(height: 8),
+            ElevatedButton(
+              key: AppKeys.backupShareCsvButton,
+              onPressed: _shareCsv,
+              child: const Text('結果をCSVで共有'),
+            ),
+          ],
           const SizedBox(height: 24),
 
           // インポート

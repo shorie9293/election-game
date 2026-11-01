@@ -286,6 +286,7 @@ class AppKeys {
   static const backupExportButton = Key('backup_export_button');
   static const backupExportOutput = Key('backup_export_output');
   static const backupCopyButton = Key('backup_copy_button');
+  static const backupShareCsvButton = Key('backup_share_csv_button');
   static const backupImportField = Key('backup_import_field');
   static const backupRestoreButton = Key('backup_restore_button');
   static const backupRestoreConfirmButton =
