@@ -10,6 +10,8 @@ import 'package:election_game/domain/repositories/quiz_repository.dart';
 import 'package:election_game/domain/services/quiz_mistake_service.dart';
 import 'package:election_game/domain/services/quiz_service.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
+import 'package:election_game/features/undo/domain/undo_buffer.dart';
+import 'package:election_game/features/undo/presentation/undo_snack_bar.dart';
 
 /// 選挙クイズの間違い復習ノート画面。
 ///
@@ -49,6 +51,10 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
 
   /// カテゴリ絞り込み（null = すべて）
   QuizCategory? _category;
+
+  /// 全消去の Undo 用スナップショット（単一スロット・取り出しは一度きり）。
+  final UndoBuffer<List<QuizMistakeEntry>> _undoBuffer =
+      UndoBuffer<List<QuizMistakeEntry>>();
 
   @override
   void initState() {
@@ -131,7 +137,7 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
           style: TextStyle(color: RetroPalette.gold),
         ),
         content: const Text(
-          '記録した誤答の履歴がすべて消えます。この操作は取り消せません。',
+          '記録した誤答の履歴がすべて消えます。直後に「元に戻す」で復元できます。',
           style: TextStyle(color: RetroPalette.textNormal),
         ),
         actions: [
@@ -150,9 +156,28 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
       ),
     );
     if (confirmed != true) return;
+    // 消去前の内容（並び込み）を Undo 用に保持 → 即時消去（既存挙動は不変）
+    final snapshot = List<QuizMistakeEntry>.unmodifiable(_entries);
+    _undoBuffer.push(snapshot);
     await widget.repository.clear();
     if (!mounted) return;
     setState(() => _entries = const []);
+    showUndoSnackBar(
+      context,
+      message: '復習ノートを消去しました',
+      onUndo: () async {
+        // take() は一度きり → 二重復元しない
+        final restored = _undoBuffer.take();
+        if (restored == null) return;
+        try {
+          await widget.repository.save(restored);
+          if (!mounted) return;
+          setState(() => _entries = QuizMistakeService.sort(restored));
+        } catch (_) {
+          // 復元失敗で画面を落とさない（消去済みの状態のまま）
+        }
+      },
+    );
   }
 
   @override
