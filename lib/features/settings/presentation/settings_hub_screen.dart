@@ -20,6 +20,7 @@ import 'package:election_game/features/backup/data/game_data_backup_repository.d
 import 'package:election_game/features/backup/presentation/game_data_backup_screen.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
 import 'package:election_game/features/crossapp/presentation/crossapp_link_settings_screen.dart';
+import 'package:election_game/features/help/presentation/help_screen.dart';
 import 'package:election_game/features/reminder/data/quiet_hours_repository.dart';
 import 'package:election_game/features/reminder/infrastructure/notification_permission_requester.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
@@ -63,6 +64,7 @@ class SettingsHubScreen extends StatelessWidget {
     this.aboutScreenBuilder,
     this.crashLogScreenBuilder,
     this.crashLogRepository,
+    this.helpScreenBuilder,
   });
 
   /// 文字サイズの現在値と変更通知。
@@ -102,6 +104,9 @@ class SettingsHubScreen extends StatelessWidget {
 
   /// クラッシュログの読み込み元（未指定なら端末保存の実装）。
   final CrashLogRepository? crashLogRepository;
+
+  /// 「遊び方・ヘルプ」の遷移先ビルダー（未指定なら実画面）。
+  final WidgetBuilder? helpScreenBuilder;
 
   void _push(BuildContext context, WidgetBuilder builder) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: builder));
@@ -320,6 +325,17 @@ class SettingsHubScreen extends StatelessWidget {
             onTap: () => _push(
               context,
               aboutScreenBuilder ?? (_) => const AboutScreen(),
+            ),
+          ),
+          _tile(
+            key: AppKeys.settingsHubHelpTile,
+            testId: 'btn_settings_hub_help',
+            icon: Icons.help_outline,
+            title: '遊び方・ヘルプ',
+            subtitle: 'チュートリアルの内容を読み返す',
+            onTap: () => _push(
+              context,
+              helpScreenBuilder ?? (_) => const HelpScreen(),
             ),
           ),
         ],

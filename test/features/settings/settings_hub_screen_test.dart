@@ -20,6 +20,7 @@ const _entries = <({String label, Key key})>[
   (label: 'アプリロック', key: AppKeys.settingsHubAppLockTile),
   (label: 'クロスアプリ連携', key: AppKeys.settingsHubCrossAppTile),
   (label: 'アプリについて', key: AppKeys.settingsHubAboutTile),
+  (label: '遊び方・ヘルプ', key: AppKeys.settingsHubHelpTile),
 ];
 
 Future<void> _pumpHub(WidgetTester tester, Widget hub) async {
@@ -46,7 +47,7 @@ void main() {
       );
     });
 
-    testWidgets('全12項目のラベルが並ぶ', (tester) async {
+    testWidgets('全13項目のラベルが並ぶ', (tester) async {
       await _pumpHub(tester, const SettingsHubScreen());
 
       for (final entry in _entries) {
@@ -61,7 +62,7 @@ void main() {
           reason: '${entry.label} のラベルが無い',
         );
       }
-      expect(_entries.length, 12);
+      expect(_entries.length, 13);
     });
 
     testWidgets('全項目に chevron（遷移アイコン）が付く', (tester) async {
@@ -98,6 +99,7 @@ void main() {
           crossAppScreenBuilder: counting('クロスアプリ連携'),
           aboutScreenBuilder: counting('アプリについて'),
           crashLogScreenBuilder: counting('不具合の報告'),
+          helpScreenBuilder: counting('遊び方・ヘルプ'),
         ),
       );
 

@@ -188,6 +188,16 @@ class AppKeys {
   static const settingsHubAppLockTile = Key('settings_hub_app_lock_tile');
   static const settingsHubCrossAppTile = Key('settings_hub_cross_app_tile');
   static const settingsHubAboutTile = Key('settings_hub_about_tile');
+  static const settingsHubHelpTile = Key('settings_hub_help_tile');
+
+  // Help（遊び方・ヘルプ）
+  static const helpScreen = Key('help_screen');
+  static const helpTitle = Key('help_title');
+  static const helpSearchField = Key('help_search_field');
+  static const helpSearchClear = Key('help_search_clear');
+  static const helpList = Key('help_list');
+  static const helpEmptyState = Key('help_empty_state');
+  static Key helpTopicTile(String id) => Key('help_topic_tile_$id');
 
   // Turnout（投票率）
   static const turnoutScreen = Key('turnout_screen');
