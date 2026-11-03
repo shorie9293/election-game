@@ -46,6 +46,9 @@ jobs:
       - name: 🔍 Static Analysis
         run: flutter analyze --no-fatal-infos
 
+      - name: 🚫 本番ログ静的検査
+        run: flutter test --no-pub test/core/logging/print_gate_test.dart
+
       - name: 🧪 Run Tests
         run: flutter test --no-pub
 

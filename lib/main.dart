@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:election_game/core/crash/crash_guard.dart';
+import 'package:election_game/core/logging/app_logger.dart';
 import 'package:election_game/core/crash/error_boundary.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
@@ -45,7 +46,7 @@ void main() {
     (Object error, StackTrace stack) {
       // PlatformDispatcher から転送された分は既に記録済み（二重記録しない）。
       handleZoneError(error, stack);
-      debugPrint('[main] ⚠️ 未捕捉の非同期例外: $error');
+      appLog.error('[main] 未捕捉の非同期例外', error, stack);
     },
   );
 }
@@ -58,10 +59,10 @@ void bootstrap() {
       await Firebase.initializeApp();
       // Analytics: セッション開始を記録し DAU/定着率のKPI計測を有効化
       unawaited(FirebaseAnalytics.instance.logAppOpen());
-      debugPrint('[main] ✅ Firebase 初期化完了');
+      appLog.info('[main] Firebase 初期化完了');
     } catch (e) {
       // テスト環境や Firebase 未設定時はアプリ起動を妨げず継続する
-      debugPrint('[main] ⚠️ Firebase初期化失敗（アプリは継続）: $e');
+      appLog.warn('[main] Firebase初期化失敗（アプリは継続）', e);
     }
   }
 
@@ -77,7 +78,7 @@ void bootstrap() {
       await Hive.openBox<String>(HiveElectionReminderRepository.boxName);
     } catch (e) {
       // 失敗しても起動は妨げない（通知設定は既定値＝静穏時間なしで継続）。
-      debugPrint('[main] ⚠️ 通知設定ストレージ初期化失敗（アプリは継続）: $e');
+      appLog.warn('[main] 通知設定ストレージ初期化失敗（アプリは継続）', e);
     }
   }
 
@@ -165,7 +166,7 @@ Future<void> _onDayRollover(BuildContext context) async {
     }
   } catch (e) {
     // 通知再スケジュールの失敗はアプリの継続を妨げない。
-    debugPrint('[main] ⚠️ 日付跨ぎ後の通知再スケジュール失敗: $e');
+    appLog.warn('[main] 日付跨ぎ後の通知再スケジュール失敗', e);
   }
 }
 

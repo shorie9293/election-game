@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:election_game/core/logging/app_logger.dart';
 import 'package:election_game/features/lifecycle/domain/day_rollover_detector.dart';
 
 /// 前面復帰（resumed）時にだけ日付跨ぎを検出し、跨いでいたら [onRollover] を1回撃つ。
@@ -11,7 +12,7 @@ import 'package:election_game/features/lifecycle/domain/day_rollover_detector.da
 /// - `resumed` 以外（paused/inactive/hidden/detached）では何もしない。
 ///   バックグラウンド復帰時の通知再スケジュール等の副作用を二重に起こさないため。
 /// - [onRollover] は await せず投げっぱなし（UI をブロックしない）。例外は握って
-///   debugPrint のみ。跨ぎ処理の失敗でアプリを落とさない。
+///   warn ログのみ。跨ぎ処理の失敗でアプリを落とさない。
 /// - 再入防止フラグにより、同一の跨ぎで二重発火しない。
 class AppLifecycleRefresher extends StatefulWidget {
   const AppLifecycleRefresher({
@@ -72,7 +73,7 @@ class _AppLifecycleRefresherState extends State<AppLifecycleRefresher>
       await widget.onRollover();
     } catch (e) {
       // 跨ぎ再計算の失敗はアプリの継続を妨げない。
-      debugPrint('[AppLifecycleRefresher] ⚠️ onRollover 失敗: $e');
+      appLog.warn('[AppLifecycleRefresher] onRollover 失敗', e);
     } finally {
       _running = false;
     }

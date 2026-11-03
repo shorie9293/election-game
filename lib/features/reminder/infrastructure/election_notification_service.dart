@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:election_game/core/logging/app_logger.dart';
 import 'package:election_game/features/reminder/domain/notification_route_resolver.dart';
 import 'package:election_game/features/reminder/domain/quiet_hours_delivery.dart';
 import 'package:election_game/features/reminder/domain/quiet_hours_service.dart';
@@ -160,7 +160,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         handlePayload(launchDetails?.notificationResponse?.payload);
       }
     } catch (e) {
-      debugPrint('[ElectionNotificationService] initialize 失敗: $e');
+      appLog.warn('[ElectionNotificationService] initialize 失敗', e);
     }
   }
 
@@ -190,7 +190,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
       }
       return true;
     } catch (e) {
-      debugPrint('[ElectionNotificationService] requestPermission 失敗: $e');
+      appLog.warn('[ElectionNotificationService] requestPermission 失敗', e);
       return false;
     }
   }
@@ -255,7 +255,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         );
       }
     } catch (e) {
-      debugPrint('[ElectionNotificationService] scheduleReminder 失敗: $e');
+      appLog.warn('[ElectionNotificationService] scheduleReminder 失敗', e);
     }
   }
 
@@ -267,7 +267,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         await _plugin.cancel(_reminderBaseId + weekday);
       }
     } catch (e) {
-      debugPrint('[ElectionNotificationService] cancelReminder 失敗: $e');
+      appLog.warn('[ElectionNotificationService] cancelReminder 失敗', e);
     }
   }
 
@@ -292,7 +292,7 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
         payload: _defaultPayload,
       );
     } catch (e) {
-      debugPrint('[ElectionNotificationService] sendTestNotification 失敗: $e');
+      appLog.warn('[ElectionNotificationService] sendTestNotification 失敗', e);
     }
   }
 
