@@ -68,17 +68,17 @@ void main() {
       expect(repo.verifyPasscode('1234'), isFalse);
     });
 
-    test('保存された値は salt を用いた sha256 hex（生パスコードは保存されない）',
-        () async {
+    test('保存された値は v2 形式（生パスコードは保存されない）', () async {
       final prefs = await SharedPreferences.getInstance();
       final repo = SharedPreferencesAppLockRepository(prefs);
       await repo.setPasscode('7777');
 
-      // 同saltで再計算した結果と一致し、生パスコードは保存されない
+      // v2:<iterations>:<saltHex>:<hashHex> で、生パスコードは保存されない
       final stored = repo.getPasscodeHash();
       expect(stored, isNotNull);
       expect(stored, isNot('7777'));
-      expect(stored!.length, 64); // sha256 の hex 長
+      expect(stored!.startsWith('v2:'), isTrue);
+      expect(stored.split(':').length, 4);
     });
   });
 }

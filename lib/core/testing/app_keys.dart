@@ -442,6 +442,9 @@ class AppKeys {
   static const appLockDisableButton = Key('app_lock_disable_button');
   static const appLockErrorLabel = Key('app_lock_error_label');
   static const appLockEnabledLabel = Key('app_lock_enabled_label');
+  static const appLockGateUnlockButton = Key('app_lock_gate_unlock_button');
+  static const appLockLockoutLabel = Key('app_lock_lockout_label');
+  static const appLockGraceDropdown = Key('app_lock_grace_dropdown');
 
   // Quiz difficulty selection（クイズ難易度選択）
   static const quizDifficultyScreen = Key('quiz_difficulty_screen');

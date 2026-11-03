@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:election_game/core/infrastructure/app_lock_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_service.dart';
+import 'package:election_game/core/infrastructure/lock_reload_policy.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 
 /// 設定画面: パスコードによるアプリロックの有効化/無効化。
@@ -17,6 +18,7 @@ class AppLockSettingsScreen extends StatefulWidget {
 class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
   AppLockService? _service;
   bool _enabled = false;
+  int _graceSeconds = 0;
   final _passcodeController = TextEditingController();
   final _confirmController = TextEditingController();
   String? _error;
@@ -38,6 +40,7 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
       setState(() {
         _service = service;
         _enabled = service.isLocked;
+        _graceSeconds = service.relockGrace.inSeconds;
       });
     } catch (_) {
       // fail-open: 読込に失敗しても設定画面は開ける
@@ -83,6 +86,12 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
         .showSnackBar(const SnackBar(content: Text('アプリロックを無効にしました')));
   }
 
+  Future<void> _setGrace(int seconds) async {
+    await _service!.setRelockGrace(Duration(seconds: seconds));
+    if (!mounted) return;
+    setState(() => _graceSeconds = seconds);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,18 +105,47 @@ class _AppLockSettingsScreenState extends State<AppLockSettingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _enabled
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.lock, size: 48),
-                      const Text('アプリロック有効'),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        key: AppKeys.appLockDisableButton,
-                        onPressed: _disable,
-                        child: const Text('無効にする'),
-                      ),
-                    ],
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.lock, size: 48),
+                        const Text('アプリロック有効'),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('復帰時に再施錠'),
+                            const SizedBox(width: 12),
+                            DropdownButton<int>(
+                              key: AppKeys.appLockGraceDropdown,
+                              value: LockReloadPolicy.graceOptionsSeconds
+                                      .contains(_graceSeconds)
+                                  ? _graceSeconds
+                                  : LockReloadPolicy.graceOptionsSeconds.first,
+                              items: [
+                                for (final s in LockReloadPolicy.graceOptionsSeconds)
+                                  DropdownMenuItem<int>(
+                                    value: s,
+                                    child: Text(LockReloadPolicy.graceLabel(s)),
+                                  ),
+                              ],
+                              onChanged: (value) {
+                                if (value == null) return;
+                                _setGrace(value);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          key: AppKeys.appLockDisableButton,
+                          onPressed: _disable,
+                          child: const Text('無効にする'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : Padding(
