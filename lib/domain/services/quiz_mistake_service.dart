@@ -2,6 +2,7 @@ import '../models/quiz_mistake_entry.dart';
 import '../models/quiz_question.dart';
 import '../models/quiz_result.dart';
 import 'quiz_service.dart';
+import 'spaced_repetition_policy.dart';
 
 /// 誤答復習ノートの純粋ロジック（記録・絞り込み・並び替え・再挑戦の出題）。
 ///
@@ -37,21 +38,29 @@ class QuizMistakeService {
       final previous = byId[question.id];
 
       if (isCorrect) {
-        if (previous != null && previous.isPending) {
-          byId[question.id] = previous.copyWith(
-            category: question.category,
-            correctIndex: question.correctIndex,
+        // 未克服なら克服へ。既に克服済みでも**期限が来ていた**なら再確認と
+        // みなし、間隔を次の段階へ進める（これが無いと 3→7→14→30 と
+        // 伸びず、克服後は二度と同じ間隔で戻ってこない＝間隔反復が成立しない）。
+        // 期限前の正解は期限を動かさない（再受験で期限を先延ばしにできない）。
+        final shouldAdvance = previous != null &&
+            (previous.isPending ||
+                SpacedRepetitionPolicy.isDue(previous, now));
+        if (shouldAdvance) {
+          byId[question.id] = SpacedRepetitionPolicy.onCorrect(
+            previous.copyWith(
+              category: question.category,
+              correctIndex: question.correctIndex,
+            ),
             // 端末時計が巻き戻っていても「克服日時 < 誤答日時」の不変条件を
-            // 破らないようクランプする（不変条件違反は克服記録の消失を招く）。
-            masteredAt: now.isBefore(previous.lastWrongAt)
-                ? previous.lastWrongAt
-                : now,
+            // 破らないよう、クランプは policy 側で行う（不変条件違反は
+            // 克服記録の消失を招く）。
+            now: now,
           );
         }
         continue;
       }
 
-      byId[question.id] = previous == null
+      final base = previous == null
           ? QuizMistakeEntry(
               questionId: question.id,
               category: question.category,
@@ -66,7 +75,11 @@ class QuizMistakeService {
               lastSelectedIndex: answerIndex,
               lastWrongAt: now,
               clearMastered: true,
+              // 旧い期限を引き継ぐと「期限 < 誤答日時」で不変条件に反するため、
+              // いったん誤答日時を置き、直後に policy が翌日へ更新する。
+              dueAt: now,
             );
+      byId[question.id] = SpacedRepetitionPolicy.onWrong(base, now: now);
     }
 
     return sort(byId.values.toList(growable: false));

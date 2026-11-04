@@ -15,6 +15,8 @@ import 'quiz_question.dart';
 /// - [correctIndex] は 0 以上
 /// - [lastSelectedIndex] は null か 0 以上
 /// - [masteredAt] は [lastWrongAt] より前にはなれない
+/// - [dueAt] は [lastWrongAt] より前にはなれない
+/// - [reviewIntervalDays] は 0 以上
 class QuizMistakeEntry extends Equatable {
   /// 問題の識別子（[QuizQuestion.id]）
   final String questionId;
@@ -37,6 +39,12 @@ class QuizMistakeEntry extends Equatable {
   /// 正解して克服した日時（null = 未克服）
   final DateTime? masteredAt;
 
+  /// 次に復習すべき日時（間隔反復の期限）
+  final DateTime dueAt;
+
+  /// 現在の復習間隔（日数・0 は未設定）
+  final int reviewIntervalDays;
+
   const QuizMistakeEntry._({
     required this.questionId,
     required this.category,
@@ -45,6 +53,8 @@ class QuizMistakeEntry extends Equatable {
     required this.lastSelectedIndex,
     required this.lastWrongAt,
     required this.masteredAt,
+    required this.dueAt,
+    required this.reviewIntervalDays,
   });
 
   /// 検証付きファクトリ。不変条件に反する場合は [ArgumentError] を投げる。
@@ -56,7 +66,11 @@ class QuizMistakeEntry extends Equatable {
     int? lastSelectedIndex,
     required DateTime lastWrongAt,
     DateTime? masteredAt,
+    DateTime? dueAt,
+    int reviewIntervalDays = 0,
   }) {
+    // 未指定なら「誤答直後＝期限到来」とみなす（後方互換）。
+    final effectiveDueAt = dueAt ?? lastWrongAt;
     if (questionId.trim().isEmpty) {
       throw ArgumentError.value(questionId, 'questionId', '問題IDは空にできません');
     }
@@ -76,6 +90,12 @@ class QuizMistakeEntry extends Equatable {
     if (masteredAt != null && masteredAt.isBefore(lastWrongAt)) {
       throw ArgumentError.value(masteredAt, 'masteredAt', '克服日時が誤答日時より前になっています');
     }
+    if (effectiveDueAt.isBefore(lastWrongAt)) {
+      throw ArgumentError.value(effectiveDueAt, 'dueAt', '復習期限が誤答日時より前になっています');
+    }
+    if (reviewIntervalDays < 0) {
+      throw ArgumentError.value(reviewIntervalDays, 'reviewIntervalDays', '復習間隔は0以上でなければなりません');
+    }
     return QuizMistakeEntry._(
       questionId: questionId,
       category: category,
@@ -84,6 +104,8 @@ class QuizMistakeEntry extends Equatable {
       lastSelectedIndex: lastSelectedIndex,
       lastWrongAt: lastWrongAt,
       masteredAt: masteredAt,
+      dueAt: effectiveDueAt,
+      reviewIntervalDays: reviewIntervalDays,
     );
   }
 
@@ -105,6 +127,8 @@ class QuizMistakeEntry extends Equatable {
     int? lastSelectedIndex,
     DateTime? lastWrongAt,
     DateTime? masteredAt,
+    DateTime? dueAt,
+    int? reviewIntervalDays,
     bool clearMastered = false,
   }) {
     return QuizMistakeEntry(
@@ -115,6 +139,8 @@ class QuizMistakeEntry extends Equatable {
       lastSelectedIndex: lastSelectedIndex ?? this.lastSelectedIndex,
       lastWrongAt: lastWrongAt ?? this.lastWrongAt,
       masteredAt: clearMastered ? null : (masteredAt ?? this.masteredAt),
+      dueAt: dueAt ?? this.dueAt,
+      reviewIntervalDays: reviewIntervalDays ?? this.reviewIntervalDays,
     );
   }
 
@@ -127,6 +153,8 @@ class QuizMistakeEntry extends Equatable {
         'lastSelectedIndex': lastSelectedIndex,
         'lastWrongAt': lastWrongAt.toIso8601String(),
         'masteredAt': masteredAt?.toIso8601String(),
+        'dueAt': dueAt.toIso8601String(),
+        'reviewIntervalDays': reviewIntervalDays,
       };
 
   /// JSON から復元する。不正な内容は [FormatException] を投げる。
@@ -163,6 +191,14 @@ class QuizMistakeEntry extends Equatable {
     final masteredAt = masteredRaw == null
         ? null
         : _parseDate(masteredRaw, 'masteredAt');
+    // 旧データ（dueAt 欠落）は誤答直後を期限とみなす。
+    final dueRaw = json['dueAt'];
+    final dueAt = dueRaw == null ? lastWrongAt : _parseDate(dueRaw, 'dueAt');
+    final intervalRaw = json['reviewIntervalDays'];
+    if (intervalRaw != null && intervalRaw is! int) {
+      throw const FormatException('reviewIntervalDays が不正です');
+    }
+    final reviewIntervalDays = (intervalRaw as int?) ?? 0;
 
     return QuizMistakeEntry(
       questionId: id,
@@ -172,6 +208,8 @@ class QuizMistakeEntry extends Equatable {
       lastSelectedIndex: lastSelectedIndex as int?,
       lastWrongAt: lastWrongAt,
       masteredAt: masteredAt,
+      dueAt: dueAt,
+      reviewIntervalDays: reviewIntervalDays,
     );
   }
 
@@ -187,6 +225,15 @@ class QuizMistakeEntry extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [questionId, category, correctIndex, wrongCount, lastSelectedIndex, lastWrongAt, masteredAt];
+  List<Object?> get props => [
+        questionId,
+        category,
+        correctIndex,
+        wrongCount,
+        lastSelectedIndex,
+        lastWrongAt,
+        masteredAt,
+        dueAt,
+        reviewIntervalDays,
+      ];
 }

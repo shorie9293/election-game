@@ -9,6 +9,7 @@ import 'package:election_game/domain/repositories/quiz_mistake_repository.dart';
 import 'package:election_game/domain/repositories/quiz_repository.dart';
 import 'package:election_game/domain/services/quiz_mistake_service.dart';
 import 'package:election_game/domain/services/quiz_service.dart';
+import 'package:election_game/domain/services/spaced_repetition_policy.dart';
 import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 import 'package:election_game/features/undo/domain/undo_buffer.dart';
 import 'package:election_game/features/undo/presentation/undo_snack_bar.dart';
@@ -32,12 +33,20 @@ class QuizMistakeNotebookScreen extends StatefulWidget {
   /// 再挑戦画面へ渡す自己ベスト用リポジトリ（既定は標準実装）。
   final QuizRepository? quizRepository;
 
+  /// 試練用：現在時刻の差し替え（null なら実時計）。
+  final DateTime Function()? nowOverride;
+
+  /// 今日の復習で一度に出題する上限（既定10）。
+  final int dailyReviewLimit;
+
   const QuizMistakeNotebookScreen({
     super.key,
     this.entriesOverride,
     this.repository = const SharedPreferencesQuizMistakeRepository(),
     this.questionsOverride,
     this.quizRepository,
+    this.nowOverride,
+    this.dailyReviewLimit = 10,
   });
 
   @override
@@ -48,6 +57,7 @@ class QuizMistakeNotebookScreen extends StatefulWidget {
 class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
   List<QuizMistakeEntry> _entries = const [];
   bool _loading = true;
+  late final DateTime _now;
 
   /// カテゴリ絞り込み（null = すべて）
   QuizCategory? _category;
@@ -59,6 +69,7 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
   @override
   void initState() {
     super.initState();
+    _now = widget.nowOverride?.call() ?? DateTime.now();
     final override = widget.entriesOverride;
     if (override != null) {
       _entries = QuizMistakeService.sort(override);
@@ -121,6 +132,31 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
       ),
     );
     // 復習の結果を反映するため読み直す
+    if (!mounted) return;
+    final reloaded = widget.entriesOverride ?? await widget.repository.load();
+    if (!mounted) return;
+    setState(() => _entries = QuizMistakeService.sort(reloaded));
+  }
+
+  /// 今日の復習を開始する（期限到来分を上限まで・問題バンク順）。
+  Future<void> _startTodayReview() async {
+    final due = SpacedRepetitionPolicy.capDue(
+      SpacedRepetitionPolicy.dueEntries(_visible, _now),
+      limit: widget.dailyReviewLimit,
+    );
+    final dueIds = due.map((e) => e.questionId).toSet();
+    final reviewBank =
+        _bank.where((q) => dueIds.contains(q.id)).toList(growable: false);
+    if (reviewBank.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => QuizScreen(
+          questions: reviewBank,
+          mistakeRepository: widget.repository,
+          repository: widget.quizRepository ?? const QuizRepository(),
+        ),
+      ),
+    );
     if (!mounted) return;
     final reloaded = widget.entriesOverride ?? await widget.repository.load();
     if (!mounted) return;
@@ -288,6 +324,17 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          if (SpacedRepetitionPolicy.countDue(_visible, _now) > 0) ...[
+            DivineButton(
+              key: AppKeys.quizNotebookTodayReviewButton,
+              onPressed: _startTodayReview,
+              width: double.infinity,
+              child: Text(
+                '今日の復習 ${SpacedRepetitionPolicy.countDue(_visible, _now)}問',
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (pending.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
@@ -414,6 +461,15 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
               fontSize: 12,
             ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            '次回 ${_formatMonthDay(entry.dueAt)}',
+            key: AppKeys.quizNotebookEntryDueLabel(entry.questionId),
+            style: const TextStyle(
+              color: RetroPalette.textAccent,
+              fontSize: 11,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'あなたの解答: $selectedLabel',
@@ -443,4 +499,6 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
     String two(int value) => value.toString().padLeft(2, '0');
     return '${date.year}/${two(date.month)}/${two(date.day)}';
   }
+
+  static String _formatMonthDay(DateTime date) => '${date.month}/${date.day}';
 }

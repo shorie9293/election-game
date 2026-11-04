@@ -405,6 +405,10 @@ class AppKeys {
       Key('quiz_notebook_category_chip_$name');
   static Key quizNotebookEntryCard(String questionId) =>
       Key('quiz_notebook_entry_card_$questionId');
+  static const quizNotebookTodayReviewButton =
+      Key('quiz_notebook_today_review_button');
+  static Key quizNotebookEntryDueLabel(String questionId) =>
+      Key('quiz_notebook_entry_due_label_$questionId');
 
   // Achievement badges（プレイヤー実績バッジ）
   static const achievementScreen = Key('achievement_screen');
