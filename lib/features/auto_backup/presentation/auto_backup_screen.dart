@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_status_store.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_store.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_policy.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_presenter.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_restorer.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_sharer.dart';
+import 'package:election_game/features/auto_backup/domain/auto_backup_status.dart';
 
 /// 自動バックアップの閲覧・復元・共有画面。
 ///
@@ -30,6 +32,9 @@ class AutoBackupScreen extends StatefulWidget {
   /// 「今すぐバックアップ」の実行役（null ならボタンを出さない）。
   final Future<void> Function()? onBackupNow;
 
+  /// 自動バックアップの状態の読み出し元（null なら状態表示を出さない）。
+  final AutoBackupStatusStore? statusStore;
+
   /// 現在時刻（ローカル暦）。
   final DateTime Function()? now;
 
@@ -40,6 +45,7 @@ class AutoBackupScreen extends StatefulWidget {
     this.restorer,
     this.sharer,
     this.onBackupNow,
+    this.statusStore,
     this.now,
   });
 
@@ -50,6 +56,7 @@ class AutoBackupScreen extends StatefulWidget {
 class _AutoBackupScreenState extends State<AutoBackupScreen> {
   List<AutoBackupRow> _rows = const <AutoBackupRow>[];
   Map<String, String?> _contents = const <String, String?>{};
+  AutoBackupStatus? _status;
   bool _loaded = false;
   bool _busy = false;
 
@@ -60,6 +67,15 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
   }
 
   Future<void> _load() async {
+    AutoBackupStatus? status;
+    final statusStore = widget.statusStore;
+    if (statusStore != null) {
+      try {
+        status = await statusStore.load();
+      } catch (_) {
+        status = null;
+      }
+    }
     try {
       final entries = await widget.store.list();
       final contents = <String, String?>{};
@@ -77,6 +93,7 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
       setState(() {
         _rows = rows;
         _contents = contents;
+        _status = status;
         _loaded = true;
       });
     } catch (_) {
@@ -84,6 +101,7 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
       setState(() {
         _rows = const <AutoBackupRow>[];
         _contents = const <String, String?>{};
+        _status = status;
         _loaded = true;
       });
     }
@@ -166,6 +184,56 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
     }
   }
 
+  /// 失敗の警告バナー（未実行と毎回失敗を同じ見た目にしない）。
+  Widget _failureBanner(AutoBackupStatus status) {
+    final attemptedAt = status.lastAttemptAt;
+    final when = attemptedAt == null
+        ? ''
+        : '（最終試行 ${AutoBackupPresenter.formatDate(attemptedAt)}）';
+    final reason = status.lastError;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Container(
+        key: AppKeys.autoBackupFailureBanner,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '自動バックアップに失敗しています$when',
+              style: TextStyle(
+                color: colorScheme.onErrorContainer,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (reason != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  reason,
+                  style: TextStyle(color: colorScheme.onErrorContainer),
+                ),
+              ),
+            if (widget.onBackupNow != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: AppKeys.autoBackupRetryButton,
+                  onPressed: _busy ? null : _backupNow,
+                  child: const Text('今すぐ実行'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,6 +258,17 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
+        if (_status?.lastSuccessAt != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              '最終成功 '
+              '${AutoBackupPresenter.formatDate(_status!.lastSuccessAt!)}',
+              key: AppKeys.autoBackupLastSuccessLabel,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        if (_status?.hasFailed == true) _failureBanner(_status!),
         if (widget.onBackupNow != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -200,7 +279,7 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
               label: const Text('今すぐバックアップ'),
             ),
           ),
-        if (_rows.isEmpty)
+        if (_rows.isEmpty && _status?.hasAttempted != true)
           Padding(
             padding: const EdgeInsets.all(24),
             child: Text(

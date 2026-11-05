@@ -494,6 +494,12 @@ class AppKeys {
   static Key autoBackupShareButton(String fileName) =>
       Key('auto_backup_share_button_$fileName');
 
+  // Auto backup status（最終成功・失敗バナー・再試行）
+  static const autoBackupLastSuccessLabel =
+      Key('auto_backup_last_success_label');
+  static const autoBackupFailureBanner = Key('auto_backup_failure_banner');
+  static const autoBackupRetryButton = Key('auto_backup_retry_button');
+
   // Crash log（未捕捉例外の端末内記録）
   static const errorBoundaryFallback = Key('error_boundary_fallback');
   static const errorBoundaryReloadButton = Key('error_boundary_reload_button');

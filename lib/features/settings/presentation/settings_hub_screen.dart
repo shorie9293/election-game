@@ -13,7 +13,9 @@ import 'package:election_game/core/theme/theme_mode_setting.dart';
 import 'package:election_game/features/about/presentation/about_screen.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_restorer_impl.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_sharer_impl.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_status_store.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_store.dart';
+import 'package:election_game/features/auto_backup/domain/auto_backup_status.dart';
 import 'package:election_game/features/auto_backup/presentation/auto_backup_screen.dart';
 import 'package:election_game/features/backup/data/election_csv_sharer.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
@@ -65,6 +67,7 @@ class SettingsHubScreen extends StatelessWidget {
     this.crashLogScreenBuilder,
     this.crashLogRepository,
     this.helpScreenBuilder,
+    this.autoBackupStatusStore,
   });
 
   /// 文字サイズの現在値と変更通知。
@@ -108,12 +111,15 @@ class SettingsHubScreen extends StatelessWidget {
   /// 「遊び方・ヘルプ」の遷移先ビルダー（未指定なら実画面）。
   final WidgetBuilder? helpScreenBuilder;
 
+  /// 自動バックアップの状態の読み出し元（未指定なら警告バッジを出さない）。
+  final AutoBackupStatusStore? autoBackupStatusStore;
+
   void _push(BuildContext context, WidgetBuilder builder) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: builder));
   }
 
   /// 自動バックアップ画面の既定構成（保存先・復元・共有・即時実行）。
-  Widget _buildAutoBackupScreen() {
+  Widget _buildAutoBackupScreen({AutoBackupStatusStore? statusStore}) {
     final store = FileAutoBackupStore();
     const repository = SharedPreferencesGameDataBackupRepository();
     return AutoBackupScreen(
@@ -126,6 +132,7 @@ class SettingsHubScreen extends StatelessWidget {
         now: DateTime.now,
       ),
       sharer: TempFileAutoBackupSharer(),
+      statusStore: statusStore ?? FileAutoBackupStatusStore(),
       onBackupNow: () => writeAutoBackupNow(
         store: store,
         repository: repository,
@@ -152,6 +159,27 @@ class SettingsHubScreen extends StatelessWidget {
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
+      ),
+    );
+  }
+
+  /// 自動バックアップの導線（状態に応じて説明文だけ差し替える）。
+  Widget _autoBackupTile({
+    required BuildContext context,
+    required String subtitle,
+  }) {
+    return _tile(
+      key: AppKeys.settingsHubAutoBackupTile,
+      testId: 'btn_settings_hub_auto_backup',
+      icon: Icons.history,
+      title: '自動バックアップ',
+      subtitle: subtitle,
+      onTap: () => _push(
+        context,
+        autoBackupScreenBuilder ??
+            (_) => _buildAutoBackupScreen(
+                  statusStore: autoBackupStatusStore,
+                ),
       ),
     );
   }
@@ -280,17 +308,22 @@ class SettingsHubScreen extends StatelessWidget {
                       ),
             ),
           ),
-          _tile(
-            key: AppKeys.settingsHubAutoBackupTile,
-            testId: 'btn_settings_hub_auto_backup',
-            icon: Icons.history,
-            title: '自動バックアップ',
-            subtitle: '毎日の自動保存を閲覧・復元・共有',
-            onTap: () => _push(
-              context,
-              autoBackupScreenBuilder ?? (_) => _buildAutoBackupScreen(),
+          if (autoBackupStatusStore == null)
+            _autoBackupTile(
+              context: context,
+              subtitle: '毎日の自動保存を閲覧・復元・共有',
+            )
+          else
+            _AutoBackupStatusTile(
+              store: autoBackupStatusStore!,
+              builder: (context, status) => _autoBackupTile(
+                context: context,
+                subtitle: (status?.isDegraded ?? false)
+                    ? '自動バックアップに失敗しています'
+                        '（連続${status!.consecutiveFailures}回）'
+                    : '毎日の自動保存を閲覧・復元・共有',
+              ),
             ),
-          ),
           _tile(
             key: AppKeys.settingsHubAppLockTile,
             testId: 'btn_settings_hub_app_lock',
@@ -342,4 +375,41 @@ class SettingsHubScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 自動バックアップの状態を読み出して導線の説明文へ反映する。
+///
+/// 読み出し失敗・未試行は「通常の説明文」に落とし、例外は外へ出さない。
+class _AutoBackupStatusTile extends StatefulWidget {
+  const _AutoBackupStatusTile({required this.store, required this.builder});
+
+  final AutoBackupStatusStore store;
+  final Widget Function(BuildContext context, AutoBackupStatus? status) builder;
+
+  @override
+  State<_AutoBackupStatusTile> createState() => _AutoBackupStatusTileState();
+}
+
+class _AutoBackupStatusTileState extends State<_AutoBackupStatusTile> {
+  AutoBackupStatus? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    AutoBackupStatus? status;
+    try {
+      status = await widget.store.load();
+    } catch (_) {
+      status = null;
+    }
+    if (!mounted) return;
+    setState(() => _status = status);
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context, _status);
 }

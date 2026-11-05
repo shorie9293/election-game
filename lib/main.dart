@@ -18,6 +18,7 @@ import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_bootstrap.dart';
+import 'package:election_game/features/auto_backup/data/auto_backup_status_store.dart';
 import 'package:election_game/features/lifecycle/domain/day_rollover_detector.dart';
 import 'package:election_game/features/lifecycle/presentation/app_lifecycle_refresher.dart';
 import 'package:election_game/features/lifecycle/presentation/day_rollover_providers.dart';
@@ -111,6 +112,7 @@ void bootstrap() {
   // ━━━ 起動時1日1回の自動バックアップ（世代3ローテーション・投げっぱなし）━━━
   // 既存の手動バックアップ画面は不変。失敗しても起動は妨げない。
   scheduleAutoBackup(
+    statusStore: FileAutoBackupStatusStore(),
     buildJson: () async {
       final data =
           await const SharedPreferencesGameDataBackupRepository().collect();
