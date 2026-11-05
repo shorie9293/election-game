@@ -22,6 +22,7 @@ import 'package:election_game/features/auto_backup/data/auto_backup_status_store
 import 'package:election_game/features/lifecycle/domain/day_rollover_detector.dart';
 import 'package:election_game/features/lifecycle/presentation/app_lifecycle_refresher.dart';
 import 'package:election_game/features/lifecycle/presentation/day_rollover_providers.dart';
+import 'package:election_game/features/quiz/application/review_due_notifier.dart';
 import 'package:election_game/features/reminder/infrastructure/election_reminder_scheduler.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
 import 'package:election_game/features/backup/domain/game_data_backup.dart';
@@ -84,6 +85,19 @@ void bootstrap() {
   }
 
   initReminderStorage();
+
+  // 復習期限通知（間隔反復）を起動時に1回予約し直す。
+  // 誤答ノートの期限は日々動くため、起動のたびに「今日の復習◯問」を数え直す。
+  // 失敗しても起動は妨げない（通知が出ないだけで学習は続けられる）。
+  Future<void> initReviewDueNotification() async {
+    try {
+      await ReviewDueNotifier().refresh();
+    } catch (e) {
+      appLog.warn('[main] 復習期限通知の予約失敗（アプリは継続）', e);
+    }
+  }
+
+  initReviewDueNotification();
 
   // クラッシュ検知: Flutterフレームワーク内の致命的エラーを Crashlytics へ送信
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -166,6 +180,8 @@ Future<void> _onDayRollover(BuildContext context) async {
         service: _notificationService,
       ).apply(settings);
     }
+    // 復習期限通知も新しい「今日」で数え直す（1日1通知の不変条件を保つ）。
+    unawaited(ReviewDueNotifier().refresh());
   } catch (e) {
     // 通知再スケジュールの失敗はアプリの継続を妨げない。
     appLog.warn('[main] 日付跨ぎ後の通知再スケジュール失敗', e);

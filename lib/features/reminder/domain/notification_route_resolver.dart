@@ -16,8 +16,11 @@ class NotificationRoutes {
   /// 選挙アーカイブ画面。
   static const String archive = 'archive';
 
+  /// 誤答復習ノート（間隔反復の復習期限通知のタップ先）。
+  static const String mistakes = 'mistakes';
+
   /// 受理しうる全 route。
-  static const Set<String> all = <String>{game, reminder, archive};
+  static const Set<String> all = <String>{game, reminder, archive, mistakes};
 }
 
 /// 通知 payload から解決された遷移先。

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
@@ -11,6 +13,7 @@ import 'package:election_game/domain/services/quiz_mistake_service.dart';
 import 'package:election_game/domain/services/quiz_service.dart';
 import 'package:election_game/features/crossapp/data/crossapp_link_code_repository.dart';
 import 'package:election_game/features/crossapp/data/election_reward_event_exporter.dart';
+import 'package:election_game/features/quiz/application/review_due_notifier.dart';
 
 /// 政策・制度クイズ（理解度テスト）画面。
 ///
@@ -36,6 +39,11 @@ class QuizScreen extends StatefulWidget {
   /// クロスアプリ連携コードの読み込み元（user_id 解決に使う）
   final CrossAppLinkCodeRepository linkCodeRepository;
 
+  /// 復習期限通知の更新役（未指定なら通知しない＝従来挙動）。
+  ///
+  /// 誤答を保存した直後に「今日の復習◯問」の通知を予約し直すために使う。
+  final ReviewDueNotifier? reviewDueNotifier;
+
   const QuizScreen({
     super.key,
     this.repository = const QuizRepository(),
@@ -45,6 +53,7 @@ class QuizScreen extends StatefulWidget {
     this.rewardEventExporter,
     this.linkCodeRepository =
         const SharedPreferencesCrossAppLinkCodeRepository(),
+    this.reviewDueNotifier,
   });
 
   @override
@@ -149,6 +158,10 @@ class _QuizScreenState extends State<QuizScreen> {
         now: DateTime.now(),
       );
       await widget.mistakeRepository.save(updated);
+      // 誤答が増えれば今日の復習件数も変わる。保存直後に通知を予約し直す。
+      // 通知の成否は学習の流れに影響させない（投げっぱなし・null なら何もしない）。
+      final notifier = widget.reviewDueNotifier;
+      if (notifier != null) unawaited(notifier.refresh());
     } catch (_) {
       // 復習ノートの保存失敗はクイズの採点結果に影響させない
     }

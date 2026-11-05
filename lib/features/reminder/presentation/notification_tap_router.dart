@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
 import 'package:election_game/features/archive/presentation/election_archive_screen.dart';
+import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
 import 'package:election_game/features/reminder/domain/notification_route_resolver.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 
@@ -32,6 +33,7 @@ class NotificationTapRouter {
       entries: <Never>[],
       repository: SharedPreferencesElectionArchiveRepository(),
     ),
+    NotificationRoutes.mistakes: (_) => const QuizMistakeNotebookScreen(),
   };
 
   /// resolver に渡す許可 route（対応表と一致していなければならない）。
