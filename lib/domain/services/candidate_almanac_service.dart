@@ -1,3 +1,4 @@
+import 'package:election_game/core/text/kana_fold.dart';
 import 'package:election_game/domain/models/candidate.dart';
 import 'package:election_game/domain/models/candidate_profile.dart';
 
@@ -128,19 +129,24 @@ class CandidateAlmanacService {
     return profiles.where((p) => p.candidate.faction == faction).toList();
   }
 
-  /// 名前か派閥の部分一致検索（normalize 後に比較）
+  /// 検索比較用の正規化（normalize + かな畳み込み）。
+  ///
+  /// normalize の戻り値は既存互換のため変更しない。
+  static String normalizeForSearch(String s) => foldKana(normalize(s));
+
+  /// 名前か派閥の部分一致検索（normalizeForSearch 後に比較）
   ///
   /// query が空または空白のみなら全件を返す。
   static List<CandidateProfile> searchByName(
     List<CandidateProfile> profiles,
     String query,
   ) {
-    final normalized = normalize(query);
+    final normalized = normalizeForSearch(query);
     if (normalized.isEmpty) return [...profiles];
     return profiles
         .where((p) =>
-            normalize(p.candidate.name).contains(normalized) ||
-            normalize(p.candidate.faction).contains(normalized))
+            normalizeForSearch(p.candidate.name).contains(normalized) ||
+            normalizeForSearch(p.candidate.faction).contains(normalized))
         .toList();
   }
 

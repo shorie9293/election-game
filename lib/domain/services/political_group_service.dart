@@ -1,3 +1,4 @@
+import '../../core/text/kana_fold.dart';
 import '../models/candidate.dart';
 import '../models/political_group.dart';
 import '../models/political_group_profile.dart';
@@ -124,16 +125,22 @@ class PoliticalGroupService {
     ];
   }
 
-  /// 全角英数・全角スペースを半角化し trim・小文字化した正規形で検索する
+  /// 検索比較用の正規化（_normalize + かな畳み込み）。
+  ///
+  /// _normalize の戻り値は既存互換のため変更しない。
+  static String normalizeForSearch(String input) => foldKana(_normalize(input));
+
+  /// 全角英数・全角スペースを半角化し trim・小文字化・かな畳み込みした
+  /// 正規形で検索する
   static List<PoliticalGroupProfile> searchByName(
     List<PoliticalGroupProfile> profiles,
     String query,
   ) {
-    final normalizedQuery = _normalize(query);
+    final normalizedQuery = normalizeForSearch(query);
     if (normalizedQuery.isEmpty) return [...profiles];
     return profiles.where((p) {
-      final name = _normalize(p.group.name);
-      final ideology = _normalize(p.group.ideology);
+      final name = normalizeForSearch(p.group.name);
+      final ideology = normalizeForSearch(p.group.ideology);
       return name.contains(normalizedQuery) ||
           ideology.contains(normalizedQuery);
     }).toList();

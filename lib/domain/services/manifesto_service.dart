@@ -1,3 +1,4 @@
+import 'package:election_game/core/text/kana_fold.dart';
 import 'package:election_game/domain/models/candidate.dart';
 import 'package:election_game/domain/models/citizen_enums.dart';
 import 'package:election_game/domain/models/election.dart';
@@ -113,17 +114,22 @@ class ManifestoService {
     return sorted;
   }
 
+  /// 検索比較用の正規化（_normalize + かな畳み込み）。
+  ///
+  /// _normalize の戻り値は既存互換のため変更しない。
+  static String normalizeForSearch(String value) => foldKana(_normalize(value));
+
   /// winnerName / title の部分一致検索（正規化比較・順序保持）。
   static List<ManifestoRecord> search(
     List<ManifestoRecord> records,
     String query,
   ) {
-    final normalized = _normalize(query);
+    final normalized = normalizeForSearch(query);
     if (normalized.isEmpty) return List<ManifestoRecord>.unmodifiable(records);
     return [
       for (final record in records)
-        if (_normalize(record.winnerName).contains(normalized) ||
-            _normalize(record.title).contains(normalized))
+        if (normalizeForSearch(record.winnerName).contains(normalized) ||
+            normalizeForSearch(record.title).contains(normalized))
           record,
     ];
   }

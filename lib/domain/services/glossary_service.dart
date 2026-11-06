@@ -1,3 +1,4 @@
+import 'package:election_game/core/text/kana_fold.dart';
 import 'package:election_game/domain/models/glossary_term.dart';
 
 /// 用語集の並べ替え順序
@@ -214,15 +215,21 @@ class GlossaryService {
     return buffer.toString().trim().toLowerCase();
   }
 
+  /// 検索比較用の正規化（normalize + かな畳み込み）。
+  ///
+  /// normalize の戻り値は既存互換のため変更せず、検索判定のみ
+  /// ひらがな→カタカナ・半角カナ→全角カナを追加で吸収する。
+  static String normalizeForSearch(String s) => foldKana(normalize(s));
+
   /// term / reading / shortDefinition / description のいずれかに
-  /// query（normalize 後）が部分一致するか。空クエリは true。
+  /// query（normalizeForSearch 後）が部分一致するか。空クエリは true。
   static bool matchesText(GlossaryTerm t, String query) {
-    final normalized = normalize(query);
+    final normalized = normalizeForSearch(query);
     if (normalized.isEmpty) return true;
-    return normalize(t.term).contains(normalized) ||
-        normalize(t.reading).contains(normalized) ||
-        normalize(t.shortDefinition).contains(normalized) ||
-        normalize(t.description).contains(normalized);
+    return normalizeForSearch(t.term).contains(normalized) ||
+        normalizeForSearch(t.reading).contains(normalized) ||
+        normalizeForSearch(t.shortDefinition).contains(normalized) ||
+        normalizeForSearch(t.description).contains(normalized);
   }
 
   /// 検索（空クエリなら全件・母集合の宣言順を保つ）
