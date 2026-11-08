@@ -286,6 +286,9 @@ class AppKeys {
   static const glossaryEmptyState = Key('glossary_empty_state');
   static const glossaryCategoryFilterAll = Key('glossary_category_filter_all');
   static const homeGlossaryButton = Key('home_glossary_button');
+  static const glossaryHistoryChips = Key('glossary_history_chips');
+  static Key glossaryHistoryChip(String term) =>
+      Key('glossary_history_chip_$term');
   static Key glossaryCategoryChip(String label) =>
       Key('glossary_category_chip_$label');
   static Key glossaryTermTile(String id) => Key('glossary_term_tile_$id');

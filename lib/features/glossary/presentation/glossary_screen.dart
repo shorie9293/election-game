@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
+import 'package:election_game/core/search/search_history.dart';
+import 'package:election_game/core/search/search_history_chips.dart';
+import 'package:election_game/core/search/search_history_store.dart';
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
 import 'package:election_game/domain/models/glossary_term.dart';
@@ -17,7 +20,14 @@ class GlossaryScreen extends StatefulWidget {
   /// テスト等で用語を差し替えたい場合。null なら [GlossaryService.catalog] を使う。
   final List<GlossaryTerm>? termsOverride;
 
-  const GlossaryScreen({super.key, this.termsOverride});
+  /// 検索履歴の保存先。null なら SharedPreferences 実装を使う。
+  final SearchHistoryStore? searchHistoryStore;
+
+  const GlossaryScreen({
+    super.key,
+    this.termsOverride,
+    this.searchHistoryStore,
+  });
 
   @override
   State<GlossaryScreen> createState() => _GlossaryScreenState();
@@ -27,6 +37,54 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
   String _query = '';
   String? _selectedCategory;
   GlossarySortOrder _sortOrder = GlossarySortOrder.nameAsc;
+
+  // 履歴チップから検索語を流し込むため controller を持つ。
+  final TextEditingController _controller = TextEditingController();
+  late final SearchHistoryStore _historyStore =
+      widget.searchHistoryStore ?? const SharedPreferencesSearchHistoryStore();
+  SearchHistory _history = SearchHistory.empty();
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreHistory();
+  }
+
+  Future<void> _restoreHistory() async {
+    final stored = await _historyStore.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _history = SearchHistory.fromList(stored));
+  }
+
+  /// 現在の検索語を履歴へ積む（空なら何もしない）。
+  Future<void> _commitHistory() async {
+    final value = SearchHistory.normalize(_controller.text);
+    if (value.isEmpty) {
+      return;
+    }
+    final next = _history.add(value);
+    setState(() => _history = next);
+    await _historyStore.save(next.entries);
+  }
+
+  void _applyHistory(String value) {
+    final selection = TextSelection.collapsed(offset: value.length);
+    _controller.value = TextEditingValue(text: value, selection: selection);
+    setState(() => _query = value);
+  }
+
+  @override
+  void dispose() {
+    // 画面を離れるときの検索語も履歴に残す（空なら保存しない）。
+    final value = SearchHistory.normalize(_controller.text);
+    if (value.isNotEmpty) {
+      _historyStore.save(_history.add(value).entries);
+    }
+    _controller.dispose();
+    super.dispose();
+  }
 
   // getter にせよ。late final で widget を捕捉すると State 再利用時に
   // termsOverride の差し替えが反映されない（既知の禍津）。
@@ -84,6 +142,8 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
                 label: '用語を検索',
                 child: TextField(
                   key: AppKeys.glossarySearchField,
+                  controller: _controller,
+                  textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: '用語・読みで絞り込み',
                     prefixIcon: const Icon(Icons.search),
@@ -93,13 +153,28 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
                             key: AppKeys.glossarySearchClear,
                             icon: const Icon(Icons.clear),
                             tooltip: 'クリア',
-                            onPressed: () => setState(() => _query = ''),
+                            onPressed: () {
+                              _controller.clear();
+                              setState(() => _query = '');
+                            },
                           ),
                   ),
                   onChanged: (value) => setState(() => _query = value),
+                  onSubmitted: (_) => _commitHistory(),
                 ),
               ),
             ),
+            if (_history.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SearchHistoryChips(
+                    entries: _history.entries,
+                    onSelected: _applyHistory,
+                  ),
+                ),
+              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
