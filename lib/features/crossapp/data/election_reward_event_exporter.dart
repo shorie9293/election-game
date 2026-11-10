@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:election_game/core/infrastructure/shared_file_store.dart';
+import 'package:election_game/core/logging/app_logger.dart';
 import 'package:election_game/features/crossapp/domain/election_reward_event.dart';
 
 /// クロスアプリ報酬イベントの書き出し口。
@@ -33,10 +35,15 @@ abstract class IElectionRewardEventExporter {
 
 /// 共有ストレージへ JSONL を追記する実装。
 ///
-/// 出力先: `/data/local/tmp/takamagahara_shared/election_reward_events.jsonl`
+/// 既定の保存先は [SharedFileStore] が解決する（Android 実機では SAF の共有フォルダ）。
+/// [filePath] を明示した場合のみ、そのパスへ直接書く（試練用の後方互換）。
 /// 追記専用・1行1コンパクトJSON（凍結契約 v1）。
 class FileElectionRewardEventExporter implements IElectionRewardEventExporter {
-  final String filePath;
+  /// 試練用の明示パス。null なら共有ストア経由。
+  final String? filePath;
+
+  /// 共有ストアの差し替え（試練用）。null なら [SharedFileStore.instance]。
+  final ISharedFileStore? store;
 
   /// 時刻注入（試練で固定時刻にするため）
   final DateTime Function() clock;
@@ -47,7 +54,8 @@ class FileElectionRewardEventExporter implements IElectionRewardEventExporter {
   String _userId;
 
   FileElectionRewardEventExporter({
-    this.filePath = '$kTakamagaharaSharedDir/$kElectionRewardEventsFileName',
+    this.filePath,
+    this.store,
     String? userId,
     DateTime Function()? clock,
     String Function()? eventIdGenerator,
@@ -99,14 +107,39 @@ class FileElectionRewardEventExporter implements IElectionRewardEventExporter {
     return _appendLine(event);
   }
 
-  /// JSONL へ1行追記する。失敗は握りつぶす（best-effort）。
+  /// JSONL へ1行追記する。
+  ///
+  /// - [filePath] 明示時は従来どおりのベストエフォート（失敗は握りつぶす）。
+  /// - 共有ストア経由では失敗を**無音にせず** [SharedStorageException] として
+  ///   上位へ伝える。呼び出し側（選挙・クイズの本処理）はこれを連携失敗として
+  ///   記録し、本編は止めない。
   Future<void> _appendLine(Map<String, dynamic> event) async {
     if (_userId.trim().isEmpty) return;
+    final line = encodeEventLine(event);
+
+    if (filePath != null) {
+      await _appendToFile(filePath!, line);
+      return;
+    }
+
     try {
-      final file = File(filePath);
+      await (store ?? SharedFileStore.instance).appendLine(
+        SharedCrossAppFiles.electionRewardEvents,
+        line,
+      );
+    } on SharedStorageException catch (e, stack) {
+      appLog.warn('[crossapp] 選挙報酬イベントの書き出し失敗', e, stack);
+      rethrow;
+    }
+  }
+
+  /// 試練用: 明示パスへの直書き（従来の契約をそのまま保持）。
+  Future<void> _appendToFile(String path, String line) async {
+    try {
+      final file = File(path);
       await file.parent.create(recursive: true);
       await file.writeAsString(
-        '${encodeEventLine(event)}\n',
+        '$line\n',
         mode: FileMode.append,
         flush: true,
       );

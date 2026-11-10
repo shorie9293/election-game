@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// 共有ストレージのディレクトリ（他現世と共通）
-const String kTakamagaharaSharedDir = '/data/local/tmp/takamagahara_shared';
-
-/// election-game が書き出す報酬イベントのファイル名
+/// election-game が書き出す報酬イベントのファイル名。
+///
+/// 保存先は SharedFileStore が解決する（Android 実機では SAF の共有フォルダ）。
+/// ファイル名の正本は `SharedCrossAppFiles.electionRewardEvents`。
 const String kElectionRewardEventsFileName = 'election_reward_events.jsonl';
 
 /// 凍結契約 v1 のイベント種別

@@ -29,12 +29,9 @@ void main() {
         .toList();
   }
 
-  test('既定の出力先は凍結契約 v1 のパス', () {
+  test('既定の出力先は共有ストア（filePath は null）', () {
     final exporter = FileElectionRewardEventExporter(userId: 'abcd1234');
-    expect(
-      exporter.filePath,
-      '/data/local/tmp/takamagahara_shared/election_reward_events.jsonl',
-    );
+    expect(exporter.filePath, isNull);
   });
 
   test('userId は setter/getter で差し替えられる（既定は空）', () {

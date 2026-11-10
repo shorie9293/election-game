@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -17,6 +18,7 @@ import 'package:election_game/core/theme/reduce_motion_setting.dart';
 import 'package:election_game/core/sound/sound_settings.dart';
 import 'package:election_game/core/sound/sound_settings_repository.dart';
 import 'package:election_game/core/infrastructure/app_lock_gate.dart';
+import 'package:election_game/core/infrastructure/shared_file_store.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_bootstrap.dart';
 import 'package:election_game/features/auto_backup/data/auto_backup_status_store.dart';
 import 'package:election_game/features/lifecycle/domain/day_rollover_detector.dart';
@@ -34,6 +36,7 @@ import 'package:election_game/features/reminder/presentation/notification_tap_ro
 import 'package:election_game/screens/game_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// アプリの入口。
 ///
@@ -133,6 +136,28 @@ void bootstrap() {
       return const GameDataBackupService().build(data);
     },
   );
+
+  // ━━━ 共有ストレージ（現世をまたぐ受け渡し）の初期化 ━━━
+  // Android 実機では SAF（Storage Access Framework）の共有フォルダを使う。
+  // フォルダ未選択でも起動は妨げない（連携画面から選んでもらう）。
+  Future<void> initSharedStorage() async {
+    try {
+      if (Platform.isAndroid) {
+        SharedFileStore.configure(AndroidSharedFileStore());
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        SharedFileStore.configure(
+          FileSharedFileStore(Directory('${dir.path}/takamagahara_shared')),
+        );
+      }
+      final ready = await SharedFileStore.instance.ensureDirectory();
+      appLog.info('[main] 共有ストレージ: ${ready ? '準備OK' : '未設定（連携機能は停止中）'}');
+    } catch (e) {
+      appLog.warn('[main] 共有ストレージ初期化失敗（アプリは継続）: $e');
+    }
+  }
+
+  unawaited(initSharedStorage());
 
   runApp(
     ProviderScope(

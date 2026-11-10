@@ -65,4 +65,6 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // 現世をまたぐ共有フォルダ（Storage Access Framework）の DocumentFile API
+    implementation "androidx.documentfile:documentfile:1.0.1"
 }
