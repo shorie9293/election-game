@@ -9,6 +9,7 @@ import 'package:election_game/features/backup/data/election_csv_sharer.dart';
 import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
 import 'package:election_game/features/backup/domain/election_csv_service.dart';
 import 'package:election_game/features/backup/domain/game_data_backup.dart';
+import 'package:election_game/features/backup/domain/restore_preview.dart';
 
 /// クリップボード書き込みの差し替え可能な関数型。
 typedef ClipboardWriter = Future<void> Function(String text);
@@ -145,13 +146,58 @@ class _GameDataBackupScreenState extends State<GameDataBackupScreen> {
       return;
     }
     final backup = result.backup!;
+
+    // 復元前プレビュー（取得に失敗しても復元導線は止めない）
+    RestorePreview? preview;
+    try {
+      final current = await widget.repository.collect();
+      preview = compose(backup: backup, existing: current);
+    } catch (_) {
+      preview = null;
+    }
+    if (!mounted) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('データの復元'),
-          content: Text(
-            '${backup.entryCount}件のデータを復元します。現在のデータは上書きされます。よろしいですか？',
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${backup.entryCount}件のデータを復元します。現在のデータは上書きされます。よろしいですか？',
+                ),
+                if (preview != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          preview.summary,
+                          key: AppKeys.backupRestorePreviewSummary,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(preview.message),
+                        ),
+                        if (preview.samplesText != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              preview.samplesText!,
+                              key: AppKeys.backupRestorePreviewSamples,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(

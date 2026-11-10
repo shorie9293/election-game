@@ -133,6 +133,7 @@ class SettingsHubScreen extends StatelessWidget {
       ),
       sharer: TempFileAutoBackupSharer(),
       statusStore: statusStore ?? FileAutoBackupStatusStore(),
+      backupRepository: repository,
       onBackupNow: () => writeAutoBackupNow(
         store: store,
         repository: repository,

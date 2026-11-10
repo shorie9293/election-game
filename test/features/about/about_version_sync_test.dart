@@ -12,4 +12,8 @@ void main() {
     expect(match, isNotNull, reason: 'pubspec.yaml に version 行がない');
     expect(kAboutInfo.version, match!.group(1));
   });
+
+  test('リリース版数は 1.0.54+61（復元内訳プレビュー同梱版）', () {
+    expect(kAboutInfo.version, '1.0.54+61');
+  });
 }

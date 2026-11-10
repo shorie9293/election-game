@@ -10,6 +10,8 @@ import 'package:election_game/features/auto_backup/domain/auto_backup_presenter.
 import 'package:election_game/features/auto_backup/domain/auto_backup_restorer.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_sharer.dart';
 import 'package:election_game/features/auto_backup/domain/auto_backup_status.dart';
+import 'package:election_game/features/backup/data/game_data_backup_repository.dart';
+import 'package:election_game/features/backup/domain/restore_preview.dart';
 
 /// 自動バックアップの閲覧・復元・共有画面。
 ///
@@ -38,6 +40,10 @@ class AutoBackupScreen extends StatefulWidget {
   /// 現在時刻（ローカル暦）。
   final DateTime Function()? now;
 
+  /// 復元前プレビュー用の現在データの読み出し元
+  /// （null ならプレビューを出さない）。
+  final GameDataBackupRepository? backupRepository;
+
   const AutoBackupScreen({
     super.key,
     required this.store,
@@ -47,6 +53,7 @@ class AutoBackupScreen extends StatefulWidget {
     this.onBackupNow,
     this.statusStore,
     this.now,
+    this.backupRepository,
   });
 
   @override
@@ -114,18 +121,69 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// 復元前プレビューを組み立てる。失敗時は null（プレビュー非表示）。
+  Future<RestorePreview?> _buildPreview(AutoBackupRow row) async {
+    final repository = widget.backupRepository;
+    if (repository == null) return null;
+    final json = _contents[row.entry.fileName];
+    if (json == null) return null;
+    try {
+      final current = await repository.collect();
+      return composeFromJson(json, existing: current);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _confirmRestore(AutoBackupRow row) async {
     final restorer = widget.restorer;
     if (restorer == null) return;
+
+    final preview = await _buildPreview(row);
+    if (!mounted) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('復元の確認'),
-          content: Text(
-            '${row.dateLabel} のバックアップを復元します。'
-            '現在のデータは復元前の自動バックアップとして退避されます。',
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${row.dateLabel} のバックアップを復元します。'
+                  '現在のデータは復元前の自動バックアップとして退避されます。',
+                ),
+                if (preview != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          preview.summary,
+                          key: AppKeys.autoBackupRestorePreviewSummary,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(preview.message),
+                        ),
+                        if (preview.samplesText != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              preview.samplesText!,
+                              key: AppKeys.autoBackupRestorePreviewSamples,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(

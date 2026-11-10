@@ -306,6 +306,10 @@ class AppKeys {
       Key('backup_restore_confirm_button');
   static const backupStatusLabel = Key('backup_status_label');
   static const backupErrorLabel = Key('backup_error_label');
+  static const backupRestorePreviewSummary =
+      Key('backup_restore_preview_summary');
+  static const backupRestorePreviewSamples =
+      Key('backup_restore_preview_samples');
   static const homeBackupButton = Key('home_backup_button');
   static Key backupCategoryRow(String name) => Key('backup_category_row_$name');
 
@@ -496,6 +500,10 @@ class AppKeys {
       Key('auto_backup_restore_confirm_button');
   static const autoBackupRestoreCancelButton =
       Key('auto_backup_restore_cancel_button');
+  static const autoBackupRestorePreviewSummary =
+      Key('auto_backup_restore_preview_summary');
+  static const autoBackupRestorePreviewSamples =
+      Key('auto_backup_restore_preview_samples');
   static Key autoBackupRow(String fileName) => Key('auto_backup_row_$fileName');
   static Key autoBackupRestoreButton(String fileName) =>
       Key('auto_backup_restore_button_$fileName');
