@@ -81,10 +81,11 @@ void main() {
       await _pumpHub(tester, const SettingsHubScreen());
 
       final labels = _tileLabels(tester);
-      // 既存12項目 + ヘルプ1項目。
-      expect(labels.length, _legacyLabels.length + 1);
+      // 既存12項目 + ヘルプ1項目 + 連携状況1項目。
+      expect(labels.length, _legacyLabels.length + 2);
       expect(labels.take(_legacyLabels.length).toList(), _legacyLabels);
       expect(labels.contains('遊び方・ヘルプ'), isTrue);
+      expect(labels.contains('連携状況（現世間の受け渡し）'), isTrue);
     });
   });
 

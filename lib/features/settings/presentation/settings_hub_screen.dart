@@ -357,18 +357,6 @@ class SettingsHubScreen extends StatelessWidget {
             ),
           ),
           _tile(
-            key: AppKeys.settingsHubCrossAppStatusTile,
-            testId: 'btn_settings_hub_cross_app_status',
-            icon: Icons.swap_horiz,
-            title: '連携状況（現世間の受け渡し）',
-            subtitle: '最終送信／最終受信の成否・時刻・件数',
-            onTap: () => _push(
-              context,
-              crossAppLinkStatusScreenBuilder ??
-                  (_) => const CrossAppLinkStatusScreen(),
-            ),
-          ),
-          _tile(
             key: AppKeys.settingsHubAboutTile,
             testId: 'btn_settings_hub_about',
             icon: Icons.info_outline,
@@ -388,6 +376,18 @@ class SettingsHubScreen extends StatelessWidget {
             onTap: () => _push(
               context,
               helpScreenBuilder ?? (_) => const HelpScreen(),
+            ),
+          ),
+          _tile(
+            key: AppKeys.settingsHubCrossAppStatusTile,
+            testId: 'btn_settings_hub_cross_app_status',
+            icon: Icons.swap_horiz,
+            title: '連携状況（現世間の受け渡し）',
+            subtitle: '最終送信／最終受信の成否・時刻・件数',
+            onTap: () => _push(
+              context,
+              crossAppLinkStatusScreenBuilder ??
+                  (_) => const CrossAppLinkStatusScreen(),
             ),
           ),
         ],
