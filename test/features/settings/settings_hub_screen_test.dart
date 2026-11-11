@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/theme_mode_setting.dart';
@@ -19,6 +20,7 @@ const _entries = <({String label, Key key})>[
   (label: '自動バックアップ', key: AppKeys.settingsHubAutoBackupTile),
   (label: 'アプリロック', key: AppKeys.settingsHubAppLockTile),
   (label: 'クロスアプリ連携', key: AppKeys.settingsHubCrossAppTile),
+  (label: '連携状況（現世間の受け渡し）', key: AppKeys.settingsHubCrossAppStatusTile),
   (label: 'アプリについて', key: AppKeys.settingsHubAboutTile),
   (label: '遊び方・ヘルプ', key: AppKeys.settingsHubHelpTile),
 ];
@@ -47,7 +49,7 @@ void main() {
       );
     });
 
-    testWidgets('全13項目のラベルが並ぶ', (tester) async {
+    testWidgets('全14項目のラベルが並ぶ', (tester) async {
       await _pumpHub(tester, const SettingsHubScreen());
 
       for (final entry in _entries) {
@@ -62,7 +64,7 @@ void main() {
           reason: '${entry.label} のラベルが無い',
         );
       }
-      expect(_entries.length, 13);
+      expect(_entries.length, 14);
     });
 
     testWidgets('全項目に chevron（遷移アイコン）が付く', (tester) async {
@@ -97,6 +99,7 @@ void main() {
           autoBackupScreenBuilder: counting('自動バックアップ'),
           appLockScreenBuilder: counting('アプリロック'),
           crossAppScreenBuilder: counting('クロスアプリ連携'),
+          crossAppLinkStatusScreenBuilder: counting('連携状況（現世間の受け渡し）'),
           aboutScreenBuilder: counting('アプリについて'),
           crashLogScreenBuilder: counting('不具合の報告'),
           helpScreenBuilder: counting('遊び方・ヘルプ'),
@@ -140,6 +143,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('アプリについて'), findsWidgets);
+    });
+
+    testWidgets('「連携状況（現世間の受け渡し）」から実画面へ到達する', (tester) async {
+      // 実画面は端末保存（shared_preferences）を読むため、空の保存値を用意する。
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      await _pumpHub(tester, const SettingsHubScreen());
+
+      await tester.tap(find.byKey(AppKeys.settingsHubCrossAppStatusTile));
+      await tester.pumpAndSettle();
+
+      expect(find.text('最終送信'), findsOneWidget);
+      expect(find.text('最終受信'), findsOneWidget);
     });
   });
 

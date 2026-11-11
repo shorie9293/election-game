@@ -13,7 +13,7 @@ void main() {
     expect(kAboutInfo.version, match!.group(1));
   });
 
-  test('リリース版数は 1.0.54+61（復元内訳プレビュー同梱版）', () {
-    expect(kAboutInfo.version, '1.0.54+61');
+  test('リリース版数は 1.0.55+62（連携状況の可視化 同梱版）', () {
+    expect(kAboutInfo.version, '1.0.55+62');
   });
 }

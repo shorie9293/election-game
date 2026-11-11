@@ -27,6 +27,7 @@ import 'package:election_game/features/reminder/data/quiet_hours_repository.dart
 import 'package:election_game/features/reminder/infrastructure/notification_permission_requester.dart';
 import 'package:election_game/features/reminder/presentation/election_reminder_settings_screen.dart';
 import 'package:election_game/features/reminder/presentation/quiet_hours_settings_screen.dart';
+import 'package:election_game/features/settings/presentation/cross_app_link_status_screen.dart';
 import 'package:election_game/features/settings/presentation/reduce_motion_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/sound_settings_screen.dart';
 import 'package:election_game/features/settings/presentation/text_scale_settings_screen.dart';
@@ -63,6 +64,7 @@ class SettingsHubScreen extends StatelessWidget {
     this.autoBackupScreenBuilder,
     this.appLockScreenBuilder,
     this.crossAppScreenBuilder,
+    this.crossAppLinkStatusScreenBuilder,
     this.aboutScreenBuilder,
     this.crashLogScreenBuilder,
     this.crashLogRepository,
@@ -100,6 +102,10 @@ class SettingsHubScreen extends StatelessWidget {
   final WidgetBuilder? autoBackupScreenBuilder;
   final WidgetBuilder? appLockScreenBuilder;
   final WidgetBuilder? crossAppScreenBuilder;
+
+  /// 「連携状況（現世間の受け渡し）」の遷移先ビルダー（未指定なら実画面）。
+  final WidgetBuilder? crossAppLinkStatusScreenBuilder;
+
   final WidgetBuilder? aboutScreenBuilder;
 
   /// 「不具合の報告」の遷移先ビルダー（未指定なら実画面）。
@@ -348,6 +354,18 @@ class SettingsHubScreen extends StatelessWidget {
                   (_) => CrossAppLinkSettingsScreen(
                         repository: crossAppLinkRepository,
                       ),
+            ),
+          ),
+          _tile(
+            key: AppKeys.settingsHubCrossAppStatusTile,
+            testId: 'btn_settings_hub_cross_app_status',
+            icon: Icons.swap_horiz,
+            title: '連携状況（現世間の受け渡し）',
+            subtitle: '最終送信／最終受信の成否・時刻・件数',
+            onTap: () => _push(
+              context,
+              crossAppLinkStatusScreenBuilder ??
+                  (_) => const CrossAppLinkStatusScreen(),
             ),
           ),
           _tile(

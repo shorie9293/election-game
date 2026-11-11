@@ -187,6 +187,8 @@ class AppKeys {
   static const settingsHubAutoBackupTile = Key('settings_hub_auto_backup_tile');
   static const settingsHubAppLockTile = Key('settings_hub_app_lock_tile');
   static const settingsHubCrossAppTile = Key('settings_hub_cross_app_tile');
+  static const settingsHubCrossAppStatusTile =
+      Key('settings_hub_cross_app_status_tile');
   static const settingsHubAboutTile = Key('settings_hub_about_tile');
   static const settingsHubHelpTile = Key('settings_hub_help_tile');
 
