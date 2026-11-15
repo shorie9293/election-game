@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import '../../../core/testing/app_keys.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/load_state_view.dart';
 import '../../../domain/models/candidate.dart';
 import '../../../domain/models/election.dart';
@@ -232,7 +233,18 @@ class _PredictionScreenState extends State<PredictionScreen> {
           else if (_loaded)
             SemanticHelper.container(
               testId: 'txt_prediction_result_empty',
-              child: const LoadEmptyView(message: '答え合わせはまだありません'),
+              child: EmptyStateView(
+                key: AppKeys.predictionEmptyState,
+                icon: Icons.inbox_outlined,
+                iconSize: 32,
+                spec: _saved == null
+                    ? EmptyStateSpec(
+                        title: '答え合わせはまだありません',
+                        actionLabel: '予想する',
+                        onAction: _save,
+                      )
+                    : EmptyStateSpec(title: '答え合わせはまだありません'),
+              ),
             ),
         ],
       ),

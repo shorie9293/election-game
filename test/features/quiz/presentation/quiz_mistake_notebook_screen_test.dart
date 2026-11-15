@@ -7,6 +7,7 @@ import 'package:election_game/domain/models/quiz_mistake_entry.dart';
 import 'package:election_game/domain/models/quiz_question.dart';
 import 'package:election_game/domain/repositories/quiz_mistake_repository.dart';
 import 'package:election_game/features/quiz/presentation/quiz_mistake_notebook_screen.dart';
+import 'package:election_game/features/quiz/presentation/quiz_screen.dart';
 
 void main() {
   final now = DateTime(2026, 10, 13, 10, 0);
@@ -78,6 +79,22 @@ void main() {
       expect(find.byKey(AppKeys.quizNotebookEmpty), findsOneWidget);
       expect(find.text('まだ誤答の記録がありません'), findsOneWidget);
       expect(find.byKey(AppKeys.quizNotebookSummary), findsNothing);
+    });
+
+    testWidgets('空状態は「クイズを始める」導線を差し出し、押すとクイズへ行く', (tester) async {
+      await pumpNotebook(tester, entries: const []);
+
+      // 既存の説明文言は不変
+      expect(
+        find.text('クイズで間違えた問題がここに貯まり、後から復習できます。'),
+        findsOneWidget,
+      );
+      expect(find.text('クイズを始める'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('empty_state_action_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuizScreen), findsOneWidget);
     });
 
     testWidgets('サマリーに要復習・克服済み・のべ誤答が出る', (tester) async {

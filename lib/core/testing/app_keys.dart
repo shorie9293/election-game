@@ -264,6 +264,7 @@ class AppKeys {
   static const predictionShareErrorLabel = Key('prediction_share_error_label');
   static const predictionScoreLabel = Key('prediction_score_label');
   static const predictionAccuracyLabel = Key('prediction_accuracy_label');
+  static const predictionEmptyState = Key('prediction_empty_state');
   static const homePredictionButton = Key('home_prediction_button');
   static Key predictionCandidateOption(String id) =>
       Key('prediction_candidate_option_$id');

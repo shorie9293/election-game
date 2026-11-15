@@ -12,7 +12,7 @@ import 'package:election_game/features/prediction/presentation/prediction_screen
 
 const _errorViewKey = ValueKey('load_error_view');
 const _retryButtonKey = ValueKey('load_retry_button');
-const _emptyViewKey = ValueKey('load_empty_view');
+const _emptyViewKey = AppKeys.predictionEmptyState;
 
 List<Candidate> _candidates() => const [
       Candidate(
@@ -188,5 +188,47 @@ void main() {
     expect(find.byKey(AppKeys.predictionOutcomeCard), findsOneWidget);
     expect(find.byKey(_errorViewKey), findsNothing);
     expect(find.byKey(_emptyViewKey), findsNothing);
+  });
+
+  // 空状態は共通部品 EmptyStateView に載せ替えても、文言と次の一手を保つ。
+  testWidgets('空状態は「予想する」の導線を差し出す', (tester) async {
+    final repo = _ScriptedRepository([
+      LoadResult<ElectionPrediction?>.success(null),
+    ]);
+    await _pump(
+      tester,
+      PredictionScreen(
+        electionId: 'election_1',
+        electionTitle: 'テスト選挙',
+        candidates: _candidates(),
+        repository: repo,
+      ),
+    );
+
+    expect(find.text('答え合わせはまだありません'), findsOneWidget);
+    expect(find.text('予想する'), findsOneWidget);
+    expect(find.byKey(const ValueKey('empty_state_action_button')),
+        findsOneWidget);
+  });
+
+  testWidgets('予想済みで未確定なら空状態に操作ボタンを出さない', (tester) async {
+    final repo = _ScriptedRepository([
+      LoadResult<ElectionPrediction?>.success(_prediction()),
+    ]);
+    await _pump(
+      tester,
+      PredictionScreen(
+        electionId: 'election_1',
+        electionTitle: 'テスト選挙',
+        candidates: _candidates(),
+        repository: repo,
+      ),
+    );
+
+    expect(find.byKey(_emptyViewKey), findsOneWidget);
+    expect(find.text('答え合わせはまだありません'), findsOneWidget);
+    expect(find.text('予想する'), findsNothing);
+    expect(
+        find.byKey(const ValueKey('empty_state_action_button')), findsNothing);
   });
 }

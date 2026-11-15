@@ -3,6 +3,7 @@ import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/quiz_mistake_entry.dart';
 import 'package:election_game/domain/models/quiz_question.dart';
 import 'package:election_game/domain/repositories/quiz_mistake_repository.dart';
@@ -246,28 +247,41 @@ class _QuizMistakeNotebookScreenState extends State<QuizMistakeNotebookScreen> {
 
   Widget _buildEmpty() {
     return Center(
-      key: AppKeys.quizNotebookEmpty,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.menu_book, color: RetroPalette.textAccent, size: 48),
-            SizedBox(height: 12),
-            Text(
-              'まだ誤答の記録がありません',
-              style: TextStyle(color: RetroPalette.textNormal),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'クイズで間違えた問題がここに貯まり、後から復習できます。',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: RetroPalette.textAccent, fontSize: 12),
-            ),
-          ],
+      child: EmptyStateView(
+        key: AppKeys.quizNotebookEmpty,
+        icon: Icons.menu_book,
+        iconSize: 48,
+        accentColor: RetroPalette.textAccent,
+        titleStyle: const TextStyle(color: RetroPalette.textNormal),
+        descriptionStyle: const TextStyle(
+          color: RetroPalette.textAccent,
+          fontSize: 12,
+        ),
+        spec: EmptyStateSpec(
+          title: 'まだ誤答の記録がありません',
+          description: 'クイズで間違えた問題がここに貯まり、後から復習できます。',
+          actionLabel: 'クイズを始める',
+          onAction: _startQuiz,
         ),
       ),
     );
+  }
+
+  /// 空状態からの導線：通常のクイズに挑戦する（誤答が貯まる入口）。
+  Future<void> _startQuiz() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => QuizScreen(
+          questions: _bank,
+          mistakeRepository: widget.repository,
+          repository: widget.quizRepository ?? const QuizRepository(),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    final reloaded = widget.entriesOverride ?? await widget.repository.load();
+    if (!mounted) return;
+    setState(() => _entries = QuizMistakeService.sort(reloaded));
   }
 
   Widget _buildBody() {
