@@ -6,6 +6,7 @@ import 'package:election_game/core/crash/crash_log_entry.dart';
 import 'package:election_game/core/crash/crash_log_repository.dart';
 import 'package:election_game/core/crash/crash_log_service.dart';
 import 'package:election_game/core/testing/app_keys.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 
 /// 端末内クラッシュログの閲覧画面。
 ///
@@ -95,27 +96,19 @@ class _CrashLogScreenState extends State<CrashLogScreen> {
         child: Semantics(
           container: true,
           label: '記録された不具合はありません',
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.verified_outlined, size: 48),
-                SizedBox(height: 16),
-                Text(
-                  '記録された不具合はありません',
-                  key: AppKeys.crashLogEmptyState,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'アプリが異常終了したり表示に失敗したりすると、'
+          child: EmptyStateView(
+            key: AppKeys.crashLogEmptyState,
+            icon: Icons.verified_outlined,
+            iconSize: 48,
+            titleStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            descriptionStyle: const TextStyle(fontSize: 13),
+            spec: EmptyStateSpec(
+              title: '記録された不具合はありません',
+              description: 'アプリが異常終了したり表示に失敗したりすると、'
                   'その記録がこの端末内に残ります。',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13),
-                ),
-              ],
             ),
           ),
         ),

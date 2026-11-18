@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/play_activity_heatmap.dart';
 import 'package:election_game/domain/repositories/election_archive_repository.dart';
@@ -163,27 +164,22 @@ class _PlayActivityHeatmapScreenState
       appBar: AppBar(title: const Text('選挙プレイの歩み')),
       body: hm.isEmpty
           ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  key: AppKeys.playHeatmapEmpty,
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
-                      Icons.calendar_month,
-                      color: RetroPalette.voteAbstain,
-                      size: 48,
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'まだ記録がありません。\n選挙を重ねるとここに記録されます。',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: RetroPalette.textNormal,
-                        height: 1.6,
-                      ),
-                    ),
-                  ],
+              child: EmptyStateView(
+                key: AppKeys.playHeatmapEmpty,
+                icon: Icons.calendar_month,
+                iconSize: 48,
+                accentColor: RetroPalette.voteAbstain,
+                titleStyle: const TextStyle(
+                  color: RetroPalette.textNormal,
+                  height: 1.6,
+                ),
+                descriptionStyle: const TextStyle(
+                  color: RetroPalette.textNormal,
+                  height: 1.6,
+                ),
+                spec: EmptyStateSpec(
+                  title: 'まだ記録がありません。',
+                  description: '選挙を重ねるとここに記録されます。',
                 ),
               ),
             )

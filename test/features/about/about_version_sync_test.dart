@@ -13,7 +13,7 @@ void main() {
     expect(kAboutInfo.version, match!.group(1));
   });
 
-  test('リリース版数は 1.0.56+63（空状態の共通部品 同梱版）', () {
-    expect(kAboutInfo.version, '1.0.56+63');
+  test('リリース版数は 1.0.57+64（空状態の共通部品 全画面普及版）', () {
+    expect(kAboutInfo.version, '1.0.57+64');
   });
 }

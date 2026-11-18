@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/election_archive.dart';
 import 'package:election_game/domain/models/turnout_snapshot.dart';
@@ -242,17 +243,13 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.image_not_supported, color: RetroPalette.textNormal, size: 48),
-          SizedBox(height: 12),
-          Text(
-            '共有できる選挙結果がありません',
-            key: AppKeys.shareCardEmpty,
-            style: TextStyle(color: RetroPalette.textNormal),
-          ),
-        ],
+      child: EmptyStateView(
+        key: AppKeys.shareCardEmpty,
+        icon: Icons.image_not_supported,
+        iconSize: 48,
+        accentColor: RetroPalette.textNormal,
+        titleStyle: const TextStyle(color: RetroPalette.textNormal),
+        spec: EmptyStateSpec(title: '共有できる選挙結果がありません'),
       ),
     );
   }

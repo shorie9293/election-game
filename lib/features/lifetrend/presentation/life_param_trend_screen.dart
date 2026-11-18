@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/life_param_snapshot.dart';
 import 'package:election_game/domain/models/life_param_trend.dart';
 import 'package:election_game/domain/repositories/life_param_snapshot_repository.dart';
@@ -75,20 +76,22 @@ class _LifeParamTrendScreenState extends State<LifeParamTrendScreen> {
         backgroundColor: RetroPalette.bgDark,
         appBar: AppBar(title: const Text('生活パラメータの推移')),
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              key: AppKeys.lifeParamTrendEmpty,
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.show_chart, color: RetroPalette.voteAbstain, size: 48),
-                SizedBox(height: 12),
-                Text(
-                  'まだ記録がありません。\n選挙を終えると生活パラメータが記録されます。',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: RetroPalette.textNormal, height: 1.6),
-                ),
-              ],
+          child: EmptyStateView(
+            key: AppKeys.lifeParamTrendEmpty,
+            icon: Icons.show_chart,
+            iconSize: 48,
+            accentColor: RetroPalette.voteAbstain,
+            titleStyle: const TextStyle(
+              color: RetroPalette.textNormal,
+              height: 1.6,
+            ),
+            descriptionStyle: const TextStyle(
+              color: RetroPalette.textNormal,
+              height: 1.6,
+            ),
+            spec: EmptyStateSpec(
+              title: 'まだ記録がありません。',
+              description: '選挙を終えると生活パラメータが記録されます。',
             ),
           ),
         ),

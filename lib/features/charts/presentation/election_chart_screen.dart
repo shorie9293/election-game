@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/election_archive.dart';
 import 'package:election_game/domain/models/election_chart.dart';
@@ -101,18 +102,14 @@ class _ElectionChartScreenState extends State<ElectionChartScreen> {
         appBar: AppBar(
           title: const Text('選挙グラフ分析', key: AppKeys.chartScreen),
         ),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.insights, color: RetroPalette.textNormal, size: 48),
-              SizedBox(height: 12),
-              Text(
-                'まだ選挙の記録がありません',
-                key: AppKeys.chartEmptyState,
-                style: TextStyle(color: RetroPalette.textNormal),
-              ),
-            ],
+        body: Center(
+          child: EmptyStateView(
+            key: AppKeys.chartEmptyState,
+            icon: Icons.insights,
+            iconSize: 48,
+            accentColor: RetroPalette.textNormal,
+            titleStyle: const TextStyle(color: RetroPalette.textNormal),
+            spec: EmptyStateSpec(title: 'まだ選挙の記録がありません'),
           ),
         ),
       );

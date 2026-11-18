@@ -3,6 +3,7 @@ import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/core/widgets/empty_state.dart';
 import 'package:election_game/domain/models/election.dart';
 import 'package:election_game/domain/models/election_archive.dart';
 import 'package:election_game/domain/models/election_scale.dart';
@@ -166,17 +167,13 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.history, color: RetroPalette.textNormal, size: 48),
-          SizedBox(height: 12),
-          Text(
-            'まだ選挙の記録がありません',
-            key: AppKeys.archiveEmptyState,
-            style: TextStyle(color: RetroPalette.textNormal),
-          ),
-        ],
+      child: EmptyStateView(
+        key: AppKeys.archiveEmptyState,
+        icon: Icons.history,
+        iconSize: 48,
+        accentColor: RetroPalette.textNormal,
+        titleStyle: const TextStyle(color: RetroPalette.textNormal),
+        spec: EmptyStateSpec(title: 'まだ選挙の記録がありません'),
       ),
     );
   }
