@@ -379,6 +379,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _initTutorial() async {
     final isFirst = await TutorialService.isFirstLaunch();
+    if (!mounted) return;
     setState(() {
       _tutorialState = TutorialState(
         isActive: isFirst,
