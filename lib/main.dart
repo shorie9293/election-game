@@ -37,6 +37,7 @@ import 'package:election_game/screens/game_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:election_game/core/text_scale_composition.dart';
 
 /// アプリの入口。
 ///
@@ -358,7 +359,7 @@ class _ElectionGameAppState extends State<ElectionGameApp> {
       builder: (context, child) => MediaQuery(
         data: applyReduceMotion(
           MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(_textScale),
+            textScaler: composeWithSystemTextScaler(context, _textScale),
           ),
           _reduceMotion,
         ),
