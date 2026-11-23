@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
@@ -176,6 +177,10 @@ class _CrossAppLinkSettingsScreenState
               TextField(
                 key: AppKeys.crossAppLinkCodeInput,
                 controller: _controller,
+                // 連携コードは外部識別子。有効なコードを切り詰めない余裕を取る
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(100),
+                ],
                 style: const TextStyle(color: RetroPalette.textNormal),
                 decoration: InputDecoration(
                   labelText: '連携コード',

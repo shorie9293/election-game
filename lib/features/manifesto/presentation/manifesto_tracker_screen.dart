@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
@@ -75,6 +76,10 @@ class _ManifestoTrackerScreenState extends State<ManifestoTrackerScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: TextField(
                 key: AppKeys.manifestoSearchField,
+                // 絞り込み語のみ（保存対象外）— 100文字で十分
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(100),
+                ],
                 decoration: InputDecoration(
                   hintText: '当選者名・選挙名で検索',
                   prefixIcon: const Icon(Icons.search),

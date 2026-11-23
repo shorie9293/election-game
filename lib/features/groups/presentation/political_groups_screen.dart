@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -303,6 +304,10 @@ class _PoliticalGroupsScreenState extends State<PoliticalGroupsScreen> {
       children: [
         TextField(
           key: AppKeys.politicalGroupsSearchField,
+          // 絞り込み語のみ（保存対象外）— 100文字で十分
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(100),
+          ],
           style: const TextStyle(color: RetroPalette.textNormal),
           decoration: InputDecoration(
             hintText: '政党名・理念で検索',

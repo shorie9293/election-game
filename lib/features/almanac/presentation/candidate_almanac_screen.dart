@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/testing/app_keys.dart';
@@ -149,6 +150,10 @@ class _CandidateAlmanacScreenState extends State<CandidateAlmanacScreen> {
               label: '候補者を検索',
               child: TextField(
                 key: AppKeys.almanacSearchField,
+                // 絞り込み語のみ（保存対象外）— 100文字で十分
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(100),
+                ],
                 decoration: const InputDecoration(
                   hintText: '名前・政党で絞り込み',
                   prefixIcon: Icon(Icons.search),

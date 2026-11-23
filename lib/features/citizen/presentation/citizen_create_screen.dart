@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
@@ -59,6 +60,10 @@ class _CitizenCreateScreenState extends State<CitizenCreateScreen> {
               child: TextField(
                 key: AppKeys.citizenNameInput,
                 controller: _nameController,
+                // 市民名は保存・表示される識別情報 — 50文字
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(50),
+                ],
                 decoration: const InputDecoration(
                   labelText: '名前',
                   labelStyle: TextStyle(color: RetroPalette.textAccent),

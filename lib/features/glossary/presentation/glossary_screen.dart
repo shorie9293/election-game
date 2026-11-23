@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 
 import 'package:election_game/core/search/search_history.dart';
@@ -143,6 +144,10 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
                 child: TextField(
                   key: AppKeys.glossarySearchField,
                   controller: _controller,
+                  // 絞り込み語のみ（保存対象外）— 100文字で十分
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(100),
+                  ],
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: '用語・読みで絞り込み',

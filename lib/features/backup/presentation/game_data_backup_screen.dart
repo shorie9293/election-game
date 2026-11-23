@@ -293,6 +293,11 @@ class _GameDataBackupScreenState extends State<GameDataBackupScreen> {
             key: AppKeys.backupImportField,
             controller: _importController,
             maxLines: 10,
+            // バックアップJSON全体を受ける欄。上限は意図的に大きく取り、
+            // 切り詰めで復元不能（JSON破損）にならないことを保証する。
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(200000),
+            ],
             decoration: const InputDecoration(
               labelText: 'バックアップJSONを貼り付け',
               border: OutlineInputBorder(),
