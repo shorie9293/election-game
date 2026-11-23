@@ -36,6 +36,12 @@ void main() {
       );
       await tester.pump();
 
+      // 既定ビューポート（800dp）では16導線のうち後半が「その他」へ畳まれる
+      // （実機360dpの溢れ対策）。畳まれている場合はメニューを開いて到達する。
+      if (find.byKey(AppKeys.homeReminderButton).evaluate().isEmpty) {
+        await tester.tap(find.byKey(const Key('home_more_actions')));
+        await tester.pumpAndSettle();
+      }
       await tester.tap(find.byKey(AppKeys.homeReminderButton));
       await tester.pump();
       await tester.pump();

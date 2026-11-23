@@ -24,6 +24,12 @@ void main() {
       ),
     );
 
+    // 既定ビューポート（800dp）では16導線のうち後半が「その他」へ畳まれる
+    // （実機360dpの溢れ対策）。畳まれている場合はメニューを開いて到達する。
+    if (find.byKey(AppKeys.appLockSettingsEntry).evaluate().isEmpty) {
+      await tester.tap(find.byKey(const Key('home_more_actions')));
+      await tester.pumpAndSettle();
+    }
     expect(find.byKey(AppKeys.appLockSettingsEntry), findsOneWidget);
     await tester.tap(find.byKey(AppKeys.appLockSettingsEntry));
     await tester.pumpAndSettle();

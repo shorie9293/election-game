@@ -13,7 +13,7 @@ void main() {
     expect(kAboutInfo.version, match!.group(1));
   });
 
-  test('リリース版数は 1.0.57+64（空状態の共通部品 全画面普及版）', () {
-    expect(kAboutInfo.version, '1.0.57+64');
+  test('リリース版数は 1.0.58+65（AppBar導線の幅折畳み版）', () {
+    expect(kAboutInfo.version, '1.0.58+65');
   });
 }

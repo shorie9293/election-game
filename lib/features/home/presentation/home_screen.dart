@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:takamagahara_ui/takamagahara_ui.dart' hide AppKeys;
 import 'package:election_game/core/testing/app_keys.dart';
 import 'package:election_game/core/theme/retro_theme.dart';
+import 'package:election_game/features/home/domain/app_bar_action_plan.dart';
 import 'package:election_game/core/theme/text_scale_repository.dart';
 import 'package:election_game/domain/models/citizen.dart';
 import 'package:election_game/domain/models/citizen_enums.dart';
@@ -327,6 +328,192 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// データのエクスポート/バックアップ画面を開く。
+  /// AppBar の導線を宣言的に持つ。優先度の小さい順に直置きされ、
+  /// 収まらない分は「その他」メニューへ同じ Key のまま畳まれる。
+  /// 広い画面では従来通り全件直置き（後方互換）。
+  List<_HomeAction> _homeActions() {
+    return <_HomeAction>[
+      _HomeAction(
+        key: AppKeys.homeAlmanacButton,
+        icon: Icons.groups,
+        tooltip: '候補者名鑑',
+        onPressed: widget.onOpenAlmanac,
+        priority: 0,
+      ),
+      _HomeAction(
+        key: AppKeys.homeSupportButton,
+        icon: Icons.insights,
+        tooltip: '支持率シミュレーション',
+        onPressed: widget.onOpenSupportSimulation,
+        priority: 1,
+      ),
+      _HomeAction(
+        key: AppKeys.homeTurnoutButton,
+        icon: Icons.how_to_vote,
+        tooltip: '投票率',
+        onPressed: widget.onOpenTurnout,
+        priority: 2,
+      ),
+      _HomeAction(
+        key: AppKeys.homePredictionButton,
+        icon: Icons.online_prediction,
+        tooltip: '選挙予想',
+        onPressed: widget.onOpenPrediction,
+        priority: 3,
+      ),
+      _HomeAction(
+        key: AppKeys.homePoliticalGroupsButton,
+        icon: Icons.account_balance,
+        tooltip: '政党の可視化',
+        onPressed: widget.onOpenPoliticalGroups,
+        priority: 4,
+      ),
+      _HomeAction(
+        key: AppKeys.homeGlossaryButton,
+        icon: Icons.menu_book,
+        tooltip: '政治用語辞典',
+        onPressed: widget.onOpenGlossary,
+        priority: 5,
+      ),
+      _HomeAction(
+        key: AppKeys.homeAchievementsButton,
+        icon: Icons.emoji_events,
+        tooltip: '実績バッジ',
+        onPressed: widget.onOpenAchievements,
+        priority: 6,
+      ),
+      _HomeAction(
+        key: AppKeys.homeLifeParamTrendButton,
+        icon: Icons.trending_up,
+        tooltip: '生活パラメータの推移',
+        onPressed: widget.onOpenLifeParamTrend,
+        priority: 7,
+      ),
+      _HomeAction(
+        key: AppKeys.homePlayHeatmapButton,
+        icon: Icons.calendar_month,
+        tooltip: '選挙プレイの歩み',
+        onPressed: () => _openPlayActivityHeatmap(context),
+        priority: 8,
+      ),
+      _HomeAction(
+        key: AppKeys.homeBackupButton,
+        icon: Icons.save_alt,
+        tooltip: 'データのエクスポート/バックアップ',
+        onPressed: () => _openBackup(context),
+        priority: 9,
+      ),
+      _HomeAction(
+        key: AppKeys.homeTextScaleButton,
+        icon: Icons.text_fields,
+        tooltip: '文字サイズ設定',
+        onPressed: () => _openTextScaleSettings(context),
+        priority: 10,
+      ),
+      _HomeAction(
+        key: AppKeys.themeModeEntry,
+        icon: Icons.brightness_6,
+        tooltip: 'テーマ設定',
+        onPressed: () => _openThemeModeSettings(context),
+        priority: 11,
+      ),
+      _HomeAction(
+        key: AppKeys.soundSettingsEntry,
+        icon: Icons.volume_up,
+        tooltip: 'サウンド設定',
+        onPressed: () => _openSoundSettings(context),
+        priority: 12,
+      ),
+      _HomeAction(
+        key: AppKeys.homeReminderButton,
+        icon: Icons.notifications_active,
+        tooltip: '通知設定',
+        onPressed: () => _openReminderSettings(context),
+        priority: 13,
+      ),
+      _HomeAction(
+        key: AppKeys.appLockSettingsEntry,
+        icon: Icons.lock_outline,
+        tooltip: 'アプリロック',
+        onPressed: () => _openAppLockSettings(context),
+        priority: 14,
+      ),
+      _HomeAction(
+        key: AboutAppKeys.homeAboutButton,
+        icon: Icons.info_outline,
+        tooltip: 'アプリについて',
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const AboutScreen(),
+            ),
+          );
+        },
+        priority: 15,
+      ),
+    ];
+  }
+
+  /// 幅と文字倍率から直置き件数を決め、収まらない導線を「その他」へ畳む。
+  /// 実機幅360dpでは16件（16×48dp=768dp > 360dp）が溢れ、右端が押せなかった。
+  List<Widget> _buildAppBarActionWidgets(BuildContext context) {
+    final actions = _homeActions();
+    final textScale =
+        MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 3.0);
+    final plan = AppBarActionPlan.plan(
+      actionCount: actions.length,
+      availableWidth: MediaQuery.sizeOf(context).width,
+      titleReserve: kAppBarTitleReserveBase * textScale,
+    );
+    final ordered = List<_HomeAction>.of(actions)
+      ..sort((a, b) => a.priority.compareTo(b.priority));
+    final inline = ordered.take(plan.inlineCount).toList(growable: false);
+    final inlineKeys = inline.map((action) => action.key).toSet();
+    final overflow = actions
+        .where((action) => !inlineKeys.contains(action.key))
+        .toList(growable: false);
+
+    return <Widget>[
+      for (final action in inline)
+        IconButton(
+          key: action.key,
+          icon: Icon(action.icon),
+          tooltip: action.tooltip,
+          onPressed: action.onPressed,
+        ),
+      if (overflow.isNotEmpty)
+        PopupMenuButton<Key>(
+          key: const Key('home_more_actions'),
+          icon: const Icon(Icons.more_vert),
+          tooltip: 'その他',
+          onSelected: (key) {
+            for (final action in overflow) {
+              if (action.key == key) {
+                action.onPressed?.call();
+                return;
+              }
+            }
+          },
+          itemBuilder: (context) => [
+            for (final action in overflow)
+              PopupMenuItem<Key>(
+                key: action.key,
+                value: action.key,
+                child: Row(
+                  children: [
+                    Icon(action.icon, size: 20),
+                    const SizedBox(width: 12),
+                    // 長い tooltip（「データのエクスポート/バックアップ」等）でも
+                    // メニュー幅を超えないよう折り返す。
+                    Expanded(child: Text(action.tooltip)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+    ];
+  }
+
   void _openBackup(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -351,110 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
           '天照町 — ${widget.citizen.name}',
           key: AppKeys.homeTitle,
         ),
-        actions: [
-          IconButton(
-            key: AppKeys.homeAlmanacButton,
-            icon: const Icon(Icons.groups),
-            tooltip: '候補者名鑑',
-            onPressed: widget.onOpenAlmanac,
-          ),
-          IconButton(
-            key: AppKeys.homeSupportButton,
-            icon: const Icon(Icons.insights),
-            tooltip: '支持率シミュレーション',
-            onPressed: widget.onOpenSupportSimulation,
-          ),
-          IconButton(
-            key: AppKeys.homeTurnoutButton,
-            icon: const Icon(Icons.how_to_vote),
-            tooltip: '投票率',
-            onPressed: widget.onOpenTurnout,
-          ),
-          IconButton(
-            key: AppKeys.homePredictionButton,
-            icon: const Icon(Icons.online_prediction),
-            tooltip: '選挙予想',
-            onPressed: widget.onOpenPrediction,
-          ),
-          IconButton(
-            key: AppKeys.homePoliticalGroupsButton,
-            icon: const Icon(Icons.account_balance),
-            tooltip: '政党の可視化',
-            onPressed: widget.onOpenPoliticalGroups,
-          ),
-          IconButton(
-            key: AppKeys.homeGlossaryButton,
-            icon: const Icon(Icons.menu_book),
-            tooltip: '政治用語辞典',
-            onPressed: widget.onOpenGlossary,
-          ),
-          IconButton(
-            key: AppKeys.homeTextScaleButton,
-            icon: const Icon(Icons.text_fields),
-            tooltip: '文字サイズ設定',
-            onPressed: () => _openTextScaleSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.themeModeEntry,
-            icon: const Icon(Icons.brightness_6),
-            tooltip: 'テーマ設定',
-            onPressed: () => _openThemeModeSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.soundSettingsEntry,
-            icon: const Icon(Icons.volume_up),
-            tooltip: 'サウンド設定',
-            onPressed: () => _openSoundSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.appLockSettingsEntry,
-            icon: const Icon(Icons.lock_outline),
-            tooltip: 'アプリロック',
-            onPressed: () => _openAppLockSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.homeLifeParamTrendButton,
-            icon: const Icon(Icons.trending_up),
-            tooltip: '生活パラメータの推移',
-            onPressed: widget.onOpenLifeParamTrend,
-          ),
-          IconButton(
-            key: AppKeys.homePlayHeatmapButton,
-            icon: const Icon(Icons.calendar_month),
-            tooltip: '選挙プレイの歩み',
-            onPressed: () => _openPlayActivityHeatmap(context),
-          ),
-          IconButton(
-            key: AppKeys.homeBackupButton,
-            icon: const Icon(Icons.save_alt),
-            tooltip: 'データのエクスポート/バックアップ',
-            onPressed: () => _openBackup(context),
-          ),
-          IconButton(
-            key: AppKeys.homeReminderButton,
-            icon: const Icon(Icons.notifications_active),
-            tooltip: '通知設定',
-            onPressed: () => _openReminderSettings(context),
-          ),
-          IconButton(
-            key: AppKeys.homeAchievementsButton,
-            icon: const Icon(Icons.emoji_events),
-            tooltip: '実績バッジ',
-            onPressed: widget.onOpenAchievements,
-          ),
-          IconButton(
-            key: AboutAppKeys.homeAboutButton,
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'アプリについて',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const AboutScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+        actions: _buildAppBarActionWidgets(context),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -1151,4 +1235,21 @@ class _CrossAppLinkCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// AppBar の1導線。`priority` が小さいほど直置きされやすい。
+class _HomeAction {
+  final Key key;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final int priority;
+
+  const _HomeAction({
+    required this.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    required this.priority,
+  });
 }
