@@ -13,7 +13,7 @@ void main() {
     expect(kAboutInfo.version, match!.group(1));
   });
 
-  test('リリース版数は 1.0.59+66（入力長上限の版）', () {
-    expect(kAboutInfo.version, '1.0.59+66');
+  test('リリース版数は 1.0.60+67（入力長上限の版）', () {
+    expect(kAboutInfo.version, '1.0.60+67');
   });
 }
