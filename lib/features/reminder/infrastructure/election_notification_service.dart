@@ -40,8 +40,12 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
   ElectionNotificationService({
     QuietHoursGuard? guard,
     void Function(ResolvedNotificationRoute route)? onRouteSelected,
+    FlutterLocalNotificationsPlugin? plugin,
+    Future<bool> Function()? exactAlarmAllowed,
   })  : _guard = guard,
-        _onRouteSelected = onRouteSelected;
+        _onRouteSelected = onRouteSelected,
+        _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+        _exactAlarmAllowed = exactAlarmAllowed;
 
   static const int _reminderBaseId = 300; // 通知ID = 300 + weekday(1..7)
   static const int _testNotificationId = 899;
@@ -54,8 +58,15 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
   static final String _defaultPayload =
       NotificationRouteResolver.buildPayload(NotificationRoutes.game);
 
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  /// 通知送出に用いるプラグイン（試練ではモックを注入できる）。
+  final FlutterLocalNotificationsPlugin _plugin;
+
+  /// 正確アラーム可否の照会シーム。
+  ///
+  /// null なら [_plugin] へ直接照会する（本番の既定経路）。
+  /// 非 null なら照会はこれに委ね、プラグインの権限状態に依存せず
+  /// exact/inexact の分岐を試練で観測できる。
+  final Future<bool> Function()? _exactAlarmAllowed;
 
   /// 静穏時間ガード。null なら [scheduleReminder] の引数に従う。
   final QuietHoursGuard? _guard;
@@ -297,7 +308,21 @@ class ElectionNotificationService implements ElectionReminderNotificationPort {
   }
 
   /// 正確アラーム権限があれば exact、なければ inexact へフォールバック。
+  ///
+  /// 照会シーム（[_exactAlarmAllowed]）が注入されていればそれを優先する。
   Future<AndroidScheduleMode> _getScheduleMode() async {
+    final seam = _exactAlarmAllowed;
+    if (seam != null) {
+      try {
+        final allowed = await seam().timeout(const Duration(seconds: 2));
+        return allowed
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle;
+      } catch (_) {
+        // シームの照会失敗も安全側（inexact）へ
+        return AndroidScheduleMode.inexactAllowWhileIdle;
+      }
+    }
     try {
       final androidImpl = _plugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
